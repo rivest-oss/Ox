@@ -17,6 +17,8 @@
 
 #include "../nuclei.hpp"
 #include "../crypto/crc.hpp"
+#include "../io/filesystem.hpp"
+#include "../io/fstream.hpp"
 #include <cstring>
 #include <cstdio>
 
@@ -50,9 +52,80 @@ void test_endian(void) {
 	std::printf("[Nuclei/Endian] ✅ OK\n");
 };
 
+void test_file_write(void) {
+	const char *text = "Oxygen lives!\n";
+
+	const char *err = nullptr;
+	Ox::String temp = Ox::FS::temp_path(&err);
+
+	if(err != nullptr) {
+		std::fprintf(stderr, "[Filesystem/Temp Path] ❌ BAD: %s\n", err);
+		std::exit(1);
+	}
+
+	Ox::String path = temp + "/ox-test.txt";
+	Ox::FileStream fs = Ox::FS::open(path.c_str(), Ox::out, &err);
+
+	if(err != nullptr) {
+		std::fprintf(stderr, "[Filesystem/Write File] ❌ BAD: Open: %s\n", err);
+		std::exit(1);
+	}
+
+	if(fs.write((Ox::u8 *)text, 14, &err) < 0) {
+		std::fprintf(stderr, "[Filesystem/Write File] ❌ BAD: %s\n", err);
+		std::exit(1);
+	}
+
+	fs.close();
+
+	std::printf("[Filesystem/Write File] ✅ OK\n");
+};
+
+void test_file_read(void) {
+	const char *text = "Oxygen lives!\n";
+
+	const char *err = nullptr;
+	Ox::String temp = Ox::FS::temp_path(&err);
+
+	if(err != nullptr) {
+		std::fprintf(stderr, "[Filesystem/Temp Path] ❌ BAD: %s\n", err);
+		std::exit(1);
+	}
+
+	Ox::String path = temp + "/ox-test.txt";
+	Ox::FileStream fs = Ox::FS::open(path.c_str(), Ox::in, &err);
+
+	if(err != nullptr) {
+		std::fprintf(stderr, "[Filesystem/Read File] ❌ BAD: Open: %s\n", err);
+		std::exit(1);
+	}
+
+	char b[14];
+
+	if(fs.read((Ox::u8 *)b, 14, &err) < 0) {
+		std::fprintf(stderr, "[Filesystem/Read File] ❌ BAD: %s\n", err);
+		std::exit(1);
+	}
+
+	fs.close();
+
+	for(int i = 0; i < 14; i++) {
+		if(b[i] == text[i])
+			continue;
+
+		std::fprintf(stderr, "[Filesystem/Read File] ❌ BAD: Failed comparison %i (%x Vs. %x)\n", i, text[i], b[i]);
+		std::exit(1);
+	};
+
+	std::printf("[Filesystem/Read File] ✅ OK\n");
+};
+
 int main(void) {
 	test_crc32();
 	test_endian();
+
+	test_file_write();
+	test_file_read();
 
 	return 0;
 };
