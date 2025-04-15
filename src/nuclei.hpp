@@ -79,6 +79,17 @@ namespace Ox {
 	// Frees previously allocated memory.
 	void exhale(void *p);
 
+	typedef enum {
+		in = 1 << 0,
+		out = 1 << 1,
+	} openmode;
+
+	typedef enum {
+		beg = 0,
+		cur = 1 << 2,
+		end = 1 << 3,
+	} seekdir;
+
 	// Big-Endian <-> Host <-> Little-Endian functions.
 	template<typename T>
 	T __ox_byteswap(T o) {
