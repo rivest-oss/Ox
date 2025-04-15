@@ -56,8 +56,9 @@ namespace Ox {
 		#define xassert(x,y) (void)0;
 	#endif
 
+	// Allocates memory.
 	template<typename T>
-	T *xalloc(u64 count, const char **err) {
+	T *inhale(u64 count, const char **err) {
 		if(*err != nullptr)
 			return nullptr;
 
@@ -71,11 +72,12 @@ namespace Ox {
 	};
 	
 	template<typename T>
-	T *xalloc(const char **err) {
-		return xalloc<T>(1, err);
+	T *inhale(const char **err) {
+		return inhale<T>(1, err);
 	};
 
-	void xfree(void *p);
+	// Frees previously allocated memory.
+	void exhale(void *p);
 
 	// Big-Endian <-> Host <-> Little-Endian functions.
 	template<typename T>
