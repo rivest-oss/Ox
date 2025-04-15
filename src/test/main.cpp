@@ -20,7 +20,7 @@
 #include <cstring>
 #include <cstdio>
 
-int main(void) {
+void test_crc32(void) {
 	const char *str = "The quick brown fox jumps over the lazy dog";
 
 	Ox::CRC32 crc;
@@ -29,10 +29,30 @@ int main(void) {
 
 	if(digest != 0x414fa339) {
 		std::fprintf(stderr, "[Crypto/CRC32] ❌ BAD: %08x\n", digest);
-		return 1;
+		std::exit(1);
 	}
 
 	std::printf("[Crypto/CRC32] ✅ OK\n");
+};
+
+void test_endian(void) {
+	Ox::u8 arr_le[4] = { 0x67, 0x45, 0x23, 0x01 };
+	Ox::u8 arr_be[4] = { 0x83, 0x5a, 0x87, 0x6f };
+
+	Ox::u32 endian_le = Ox::letoh<Ox::u32>(*(Ox::u32 *)arr_le);
+	Ox::u32 endian_be = Ox::betoh<Ox::u32>(*(Ox::u32 *)arr_be);
+
+	if((endian_le ^ endian_be) != 0x8279c208) {
+		std::fprintf(stderr, "[Nuclei/Endian] ❌ BAD: %08x (%08x ^ %08x)\n", endian_le ^ endian_be, endian_le, endian_be);
+		std::exit(1);
+	}
+
+	std::printf("[Nuclei/Endian] ✅ OK\n");
+};
+
+int main(void) {
+	test_crc32();
+	test_endian();
 
 	return 0;
 };
