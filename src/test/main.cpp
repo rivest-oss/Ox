@@ -22,6 +22,23 @@
 #include <cstring>
 #include <cstdio>
 
+void test_endian(void) {
+	Ox::u8 arr[8] = {
+		0x67, 0x45, 0x23, 0x01,
+		0x83, 0x5a, 0x87, 0x6f
+	};
+
+	Ox::u32 endian_le = Ox::letoh<Ox::u32>(*(Ox::u32 *)arr);
+	Ox::u32 endian_be = Ox::betoh<Ox::u32>(*(Ox::u32 *)(arr + 4));
+
+	if((endian_le ^ endian_be) != 0x8279c208) {
+		std::fprintf(stderr, "[Nuclei/Endian] ❌ BAD: %08x (%08x ^ %08x)\n", endian_le ^ endian_be, endian_le, endian_be);
+		std::exit(1);
+	}
+
+	std::printf("[Nuclei/Endian] ✅ OK\n");
+};
+
 void test_crc32(void) {
 	const char *str = "The quick brown fox jumps over the lazy dog";
 
@@ -35,21 +52,6 @@ void test_crc32(void) {
 	}
 
 	std::printf("[Crypto/CRC32] ✅ OK\n");
-};
-
-void test_endian(void) {
-	Ox::u8 arr_le[4] = { 0x67, 0x45, 0x23, 0x01 };
-	Ox::u8 arr_be[4] = { 0x83, 0x5a, 0x87, 0x6f };
-
-	Ox::u32 endian_le = Ox::letoh<Ox::u32>(*(Ox::u32 *)arr_le);
-	Ox::u32 endian_be = Ox::betoh<Ox::u32>(*(Ox::u32 *)arr_be);
-
-	if((endian_le ^ endian_be) != 0x8279c208) {
-		std::fprintf(stderr, "[Nuclei/Endian] ❌ BAD: %08x (%08x ^ %08x)\n", endian_le ^ endian_be, endian_le, endian_be);
-		std::exit(1);
-	}
-
-	std::printf("[Nuclei/Endian] ✅ OK\n");
 };
 
 void test_file_write(void) {
@@ -121,8 +123,9 @@ void test_file_read(void) {
 };
 
 int main(void) {
-	test_crc32();
 	test_endian();
+
+	test_crc32();
 
 	test_file_write();
 	test_file_read();
