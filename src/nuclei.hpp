@@ -19,6 +19,18 @@
 #include <cstdint>
 #include <cstdlib>
 
+#if(defined(_WIN16) || defined(_WIN32) || defined(_WIN64)) && !defined(__WINDOWS__)
+	#define __WINDOWS__
+#endif
+
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+	#define OX_ENDIANNESS_LE // 321
+#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+	#define OX_ENDIANNESS_BE // 123
+#else
+	#error "Unsupported endianness"
+#endif
+
 namespace Ox {
 	typedef uint8_t u8;
 	typedef uint16_t u16;
@@ -33,6 +45,7 @@ namespace Ox {
 	typedef float f32;
 	typedef double f64;
 
+	typedef unsigned int uint;
 	typedef unsigned long ulong;
 
 	void __ox_assert__(const char *file, int line, const char *comment);
@@ -63,4 +76,54 @@ namespace Ox {
 	};
 
 	void xfree(void *p);
+
+	// Big-Endian <-> Host <-> Little-Endian functions.
+	template<typename T>
+	T __ox_byteswap(T o) {
+		T r;
+		
+		u8 *op = (u8 *)&o;
+		u8 *tp = (u8 *)&r + (sizeof(T) - 1);
+		
+		for(uint i = 0; i < sizeof(T); i++)
+			*tp-- = *op++;
+		
+		return r;
+	};
+
+	template<typename T>
+	T htobe(T x) {
+		#ifdef OX_ENDIANNESS_BE
+			return x;
+		#elif defined(OX_ENDIANNESS_LE)
+			return __ox_byteswap<T>(x);
+		#endif
+	};
+
+	template<typename T>
+	T htole(T x) {
+		#ifdef OX_ENDIANNESS_BE
+			return __ox_byteswap<T>(x);
+		#elif defined(OX_ENDIANNESS_LE)
+			return x;
+		#endif
+	};
+
+	template<typename T>
+	T betoh(T x) {
+		#ifdef OX_ENDIANNESS_BE
+			return x;
+		#elif defined(OX_ENDIANNESS_LE)
+			return __ox_byteswap<T>(x);
+		#endif
+	};
+
+	template<typename T>
+	T letoh(T x) {
+		#ifdef OX_ENDIANNESS_BE
+			return __ox_byteswap<T>(x);
+		#elif defined(OX_ENDIANNESS_LE)
+			return x;
+		#endif
+	};
 };

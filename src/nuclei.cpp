@@ -29,7 +29,7 @@ namespace Ox {
 		std::exit(1);
 	};
 
-	void vfree(void *p) {
+	void xfree(void *p) {
 		if(p == nullptr)
 			return;
 		
