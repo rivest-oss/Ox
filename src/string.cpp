@@ -17,9 +17,16 @@
 
 #include "nuclei.hpp"
 #include "string.hpp"
-#include <cstring>
 
 namespace Ox {
+	ulong strlen(const char *str) {
+		ulong i = 0;
+		while(*str != '\0')
+			{ str++; i++; };
+		
+		return i;
+	};
+
 	int String::from(const char *source, const char **err) {
 		if(*err != nullptr)
 			return -1;
@@ -31,7 +38,7 @@ namespace Ox {
 			implptr = nullptr;
 		}
 
-		ulong len = static_cast<ulong>(std::strlen(source));
+		ulong len = static_cast<ulong>(strlen(source));
 
 		s = inhale<char>(len + 1, err);
 		if(s == nullptr)
@@ -64,8 +71,8 @@ namespace Ox {
 			return str;
 		}
 
-		ulong len_left = std::strlen(left);
-		ulong len_right = std::strlen(right);
+		ulong len_left = strlen(left);
+		ulong len_right = strlen(right);
 
 		char *b = inhale<char>(len_left + len_right + 1, &err);
 		if(b == nullptr)

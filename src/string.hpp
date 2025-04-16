@@ -16,8 +16,11 @@
 **/
 
 #pragma once
+#include "nuclei.hpp"
 
 namespace Ox {
+	ulong strlen(const char *str);
+
 	// Placeholder.
 	class String {
 		private:
