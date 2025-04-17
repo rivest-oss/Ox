@@ -19,110 +19,117 @@
 #include "../crypto/crc.hpp"
 #include "../io/filesystem.hpp"
 #include "../io/fstream.hpp"
+#include <cstdarg>
 #include <cstring>
 #include <cstdio>
 
+#define SUPERVISOR(test_name, code) {	\
+	auto BAD = [](bool check, const char *format, ...) -> void {	\
+		if(check == false) {	\
+			std::fprintf(stderr, "\x1b[1m[%s] ❌ BAD: ", test_name);	\
+			\
+			va_list args;	\
+			va_start(args, format);	\
+			fprintf(stderr, format, args);	\
+			va_end(args);	\
+			\
+			std::fprintf(stderr, "\x1b[0m\n");	\
+			\
+			std::exit(1);	\
+		}	\
+	};	\
+	\
+	auto OK = [](void) -> void {	\
+		printf("[%s] ✅ OK\n", test_name);	\
+	};	\
+	\
+	(void)BAD; (void)OK;	\
+	\
+	(code);	\
+};
+
 void test_endian(void) {
-	Ox::u8 arr[8] = {
-		0x67, 0x45, 0x23, 0x01,
-		0x83, 0x5a, 0x87, 0x6f
-	};
+	SUPERVISOR("Nuclei/Endian", ({
+		Ox::u8 arr[8] = {
+			0x67, 0x45, 0x23, 0x01,
+			0x83, 0x5a, 0x87, 0x6f
+		};
 
-	Ox::u32 endian_le = Ox::letoh<Ox::u32>(*(Ox::u32 *)arr);
-	Ox::u32 endian_be = Ox::betoh<Ox::u32>(*(Ox::u32 *)(arr + 4));
+		Ox::u32 endian_le = Ox::letoh<Ox::u32>(*(Ox::u32 *)arr);
+		Ox::u32 endian_be = Ox::betoh<Ox::u32>(*(Ox::u32 *)(arr + 4));
 
-	if((endian_le ^ endian_be) != 0x8279c208) {
-		std::fprintf(stderr, "[Nuclei/Endian] ❌ BAD: %08x (%08x ^ %08x)\n", endian_le ^ endian_be, endian_le, endian_be);
-		std::exit(1);
-	}
-
-	std::printf("[Nuclei/Endian] ✅ OK\n");
+		BAD((endian_le ^ endian_be) == 0x8279c208, "%08x (%08x ^ %08x)");
+		OK();
+	}));
 };
 
 void test_crc32(void) {
-	const char *str = "The quick brown fox jumps over the lazy dog";
+	SUPERVISOR("Crypto/CRC32", ({
+		const char *str = "The quick brown fox jumps over the lazy dog";
+	
+		Ox::CRC32 crc;
+		crc.update((Ox::u8 *)str, std::strlen(str));
+		Ox::u32 digest = crc.digest();
 
-	Ox::CRC32 crc;
-	crc.update((Ox::u8 *)str, std::strlen(str));
-	Ox::u32 digest = crc.digest();
+		BAD(digest == 0x414fa339, "Expecting digest 0x414fa339, given digest 0x%08x", digest);
 
-	if(digest != 0x414fa339) {
-		std::fprintf(stderr, "[Crypto/CRC32] ❌ BAD: %08x\n", digest);
-		std::exit(1);
-	}
-
-	std::printf("[Crypto/CRC32] ✅ OK\n");
+		OK();
+	}));
 };
 
 void test_file_write(void) {
-	const char *text = "Oxygen lives!\n";
+	SUPERVISOR("File system/Write file", ({
+		const char *text = "Oxygen lives!\r\n";
 
-	const char *err = nullptr;
-	Ox::String temp = Ox::FS::temp_path(&err);
+		const char *err = nullptr;
+		Ox::String temp = Ox::FS::temp_path(&err);
 
-	if(err != nullptr) {
-		std::fprintf(stderr, "[Filesystem/Temp Path] ❌ BAD: %s\n", err);
-		std::exit(1);
-	}
+		BAD(err == nullptr, "GetTemporalPath did not succeed: %s", err);
 
-	Ox::String path = temp + "/ox-test.txt";
-	Ox::FileStream fs = Ox::FS::open(path.c_str(), Ox::out, &err);
+		Ox::String path = temp + "/ox-test.txt";
+		Ox::FileStream fs = Ox::FS::open(path.c_str(), Ox::out, &err);
 
-	if(err != nullptr) {
-		std::fprintf(stderr, "[Filesystem/Write File] ❌ BAD: Open: %s\n", err);
-		std::exit(1);
-	}
+		BAD(err == nullptr, "Couldn't open the file: %s", err);
+		BAD(fs.write((Ox::u8 *)text, 15, &err) == 0, "Couldn't write the file: %s", err);
 
-	if(fs.write((Ox::u8 *)text, 14, &err) < 0) {
-		std::fprintf(stderr, "[Filesystem/Write File] ❌ BAD: %s\n", err);
-		std::exit(1);
-	}
+		fs.close();
 
-	fs.close();
-
-	std::printf("[Filesystem/Write File] ✅ OK\n");
+		OK();
+	}));
 };
 
 void test_file_read(void) {
-	const char *text = "Oxygen lives!\n";
+	SUPERVISOR("File system/Read file", ({
+		const char *text = "Oxygen lives!\r\n";
 
-	const char *err = nullptr;
-	Ox::String temp = Ox::FS::temp_path(&err);
+		const char *err = nullptr;
+		Ox::String temp = Ox::FS::temp_path(&err);
 
-	if(err != nullptr) {
-		std::fprintf(stderr, "[Filesystem/Temp Path] ❌ BAD: %s\n", err);
-		std::exit(1);
-	}
+		BAD(err == nullptr, "GetTemporalPath did not succeed: %s", err);
 
-	Ox::String path = temp + "/ox-test.txt";
-	Ox::FileStream fs = Ox::FS::open(path.c_str(), Ox::in, &err);
+		Ox::String path = temp + "/ox-test.txt";
+		Ox::FileStream fs = Ox::FS::open(path.c_str(), Ox::in, &err);
 
-	if(err != nullptr) {
-		std::fprintf(stderr, "[Filesystem/Read File] ❌ BAD: Open: %s\n", err);
-		std::exit(1);
-	}
+		BAD(err == nullptr, "Couldn't open the file: %s", err);
 
-	char b[14];
+		char buff[15];
 
-	if(fs.read((Ox::u8 *)b, 14, &err) < 0) {
-		std::fprintf(stderr, "[Filesystem/Read File] ❌ BAD: %s\n", err);
-		std::exit(1);
-	}
+		BAD(fs.read((Ox::u8 *)buff, 15, &err) == 0, "Couldn't read the file: %s", err);
 
-	fs.close();
+		fs.close();
 
-	for(int i = 0; i < 14; i++) {
-		if(b[i] == text[i])
-			continue;
+		for(int i = 0; i < 14; i++) {
+			BAD(buff[i] == text[i], "Failed comparison %i (read = %02x, actual = %02x)", text[i], buff[i]);
+		};
 
-		std::fprintf(stderr, "[Filesystem/Read File] ❌ BAD: Failed comparison %i (%x Vs. %x)\n", i, text[i], b[i]);
-		std::exit(1);
-	};
-
-	std::printf("[Filesystem/Read File] ✅ OK\n");
+		OK();
+	}));
 };
 
+
 int main(void) {
+	std::printf("\x1b[0m");
+
 	test_endian();
 
 	test_crc32();
