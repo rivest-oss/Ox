@@ -23,7 +23,8 @@
 #include <cstring>
 #include <cstdio>
 
-#define SUPERVISOR(test_name, code) {	\
+#define SUPERVISE(test_name)	\
+	\
 	auto BAD = [](bool check, const char *format, ...) -> void {	\
 		if(check == false) {	\
 			std::fprintf(stderr, "\x1b[1m[%s] ❌ BAD: ", test_name);	\
@@ -43,87 +44,85 @@
 		printf("[%s] ✅ OK\n", test_name);	\
 	};	\
 	\
-	(void)BAD; (void)OK;	\
-	\
-	(code);	\
-};
+	(void)BAD;	\
+	(void)OK;
+//
 
 void test_endian(void) {
-	SUPERVISOR("Nuclei/Endian", ({
-		Ox::u8 arr[8] = {
-			0x67, 0x45, 0x23, 0x01,
-			0x83, 0x5a, 0x87, 0x6f
-		};
+	SUPERVISE("Nuclei/Endian");
 
-		Ox::u32 endian_le = Ox::letoh<Ox::u32>(*(Ox::u32 *)arr);
-		Ox::u32 endian_be = Ox::betoh<Ox::u32>(*(Ox::u32 *)(arr + 4));
+	Ox::u8 arr[8] = {
+		0x67, 0x45, 0x23, 0x01,
+		0x83, 0x5a, 0x87, 0x6f
+	};
 
-		BAD((endian_le ^ endian_be) == 0x8279c208, "%08x (%08x ^ %08x)");
-		OK();
-	}));
+	Ox::u32 endian_le = Ox::letoh<Ox::u32>(*(Ox::u32 *)arr);
+	Ox::u32 endian_be = Ox::betoh<Ox::u32>(*(Ox::u32 *)(arr + 4));
+
+	BAD((endian_be ^ endian_le) == 0x8279c208, "Check returned 0x%08x (0x%08x ^ 0x%08x)", endian_be, endian_le);
+	OK();
 };
 
 void test_crc32(void) {
-	SUPERVISOR("Crypto/CRC32", ({
-		const char *str = "The quick brown fox jumps over the lazy dog";
+	SUPERVISE("Crypto/CRC32");
 	
-		Ox::CRC32 crc;
-		crc.update((Ox::u8 *)str, std::strlen(str));
-		Ox::u32 digest = crc.digest();
+	const char *str = "The quick brown fox jumps over the lazy dog";
+	
+	Ox::CRC32 crc;
+	crc.update((Ox::u8 *)str, std::strlen(str));
+	Ox::u32 digest = crc.digest();
 
-		BAD(digest == 0x414fa339, "Expecting digest 0x414fa339, given digest 0x%08x", digest);
+	BAD(digest == 0x414fa339, "Expecting digest 0x414fa339, given digest 0x%08x", digest);
 
-		OK();
-	}));
+	OK();
 };
 
 void test_file_write(void) {
-	SUPERVISOR("File system/Write file", ({
-		const char *text = "Oxygen lives!\r\n";
+	SUPERVISE("File system/Write file");
 
-		const char *err = nullptr;
-		Ox::String temp = Ox::FS::temp_path(&err);
+	const char *text = "Oxygen lives!\r\n";
 
-		BAD(err == nullptr, "GetTemporalPath did not succeed: %s", err);
+	const char *err = nullptr;
+	Ox::String temp = Ox::FS::temp_path(&err);
 
-		Ox::String path = temp + "/ox-test.txt";
-		Ox::FileStream fs = Ox::FS::open(path.c_str(), Ox::out, &err);
+	BAD(err == nullptr, "GetTemporalPath did not succeed: %s", err);
 
-		BAD(err == nullptr, "Couldn't open the file: %s", err);
-		BAD(fs.write((Ox::u8 *)text, 15, &err) == 0, "Couldn't write the file: %s", err);
+	Ox::String path = temp + "/ox-test.txt";
+	Ox::FileStream fs = Ox::FS::open(path.c_str(), Ox::out, &err);
 
-		fs.close();
+	BAD(err == nullptr, "Couldn't open the file: %s", err);
+	BAD(fs.write((Ox::u8 *)text, 15, &err) == 0, "Couldn't write the file: %s", err);
 
-		OK();
-	}));
+	fs.close();
+
+	OK();
 };
 
 void test_file_read(void) {
-	SUPERVISOR("File system/Read file", ({
-		const char *text = "Oxygen lives!\r\n";
+	SUPERVISE("File system/Read file");
 
-		const char *err = nullptr;
-		Ox::String temp = Ox::FS::temp_path(&err);
+	const char *text = "Oxygen lives!\r\n";
 
-		BAD(err == nullptr, "GetTemporalPath did not succeed: %s", err);
+	const char *err = nullptr;
+	Ox::String temp = Ox::FS::temp_path(&err);
 
-		Ox::String path = temp + "/ox-test.txt";
-		Ox::FileStream fs = Ox::FS::open(path.c_str(), Ox::in, &err);
+	BAD(err == nullptr, "GetTemporalPath did not succeed: %s", err);
 
-		BAD(err == nullptr, "Couldn't open the file: %s", err);
+	Ox::String path = temp + "/ox-test.txt";
+	Ox::FileStream fs = Ox::FS::open(path.c_str(), Ox::in, &err);
 
-		char buff[15];
+	BAD(err == nullptr, "Couldn't open the file: %s", err);
 
-		BAD(fs.read((Ox::u8 *)buff, 15, &err) == 0, "Couldn't read the file: %s", err);
+	char buff[15];
 
-		fs.close();
+	BAD(fs.read((Ox::u8 *)buff, 15, &err) == 0, "Couldn't read the file: %s", err);
 
-		for(int i = 0; i < 14; i++) {
-			BAD(buff[i] == text[i], "Failed comparison %i (read = %02x, actual = %02x)", text[i], buff[i]);
-		};
+	fs.close();
 
-		OK();
-	}));
+	for(int i = 0; i < 14; i++)
+		BAD(buff[i] == text[i], "Failed comparison %i (read = %02x, actual = %02x)", text[i], buff[i]);
+
+	OK();
 };
 
 
