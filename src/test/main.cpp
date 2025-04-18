@@ -25,13 +25,13 @@
 
 #define SUPERVISE(test_name)	\
 	\
-	auto BAD = [](bool check, const char *format, ...) -> void {	\
+	auto ENFORCE = [](bool check, const char *format, ...) -> void {	\
 		if(check == false) {	\
 			std::fprintf(stderr, "\x1b[1m[%s] ❌ BAD: ", test_name);	\
 			\
 			va_list args;	\
 			va_start(args, format);	\
-			fprintf(stderr, format, args);	\
+			(void)std::vfprintf(stderr, format, args);	\
 			va_end(args);	\
 			\
 			std::fprintf(stderr, "\x1b[0m\n");	\
@@ -44,7 +44,7 @@
 		printf("[%s] ✅ OK\n", test_name);	\
 	};	\
 	\
-	(void)BAD;	\
+	(void)ENFORCE;	\
 	(void)OK;
 //
 
@@ -59,7 +59,7 @@ void test_endian(void) {
 	Ox::u32 endian_le = Ox::letoh<Ox::u32>(*(Ox::u32 *)arr);
 	Ox::u32 endian_be = Ox::betoh<Ox::u32>(*(Ox::u32 *)(arr + 4));
 
-	BAD((endian_be ^ endian_le) == 0x8279c208, "Check returned 0x%08x (0x%08x ^ 0x%08x)", endian_be, endian_le);
+	ENFORCE((endian_be ^ endian_le) == 0x8279c208, "Check returned 0x%08x and 0x%08x", endian_be, endian_le);
 	OK();
 };
 
@@ -72,7 +72,7 @@ void test_crc32(void) {
 	crc.update((Ox::u8 *)str, std::strlen(str));
 	Ox::u32 digest = crc.digest();
 
-	BAD(digest == 0x414fa339, "Expecting digest 0x414fa339, given digest 0x%08x", digest);
+	ENFORCE(digest == 0x414fa339, "Expecting digest 0x414fa339, computed digest 0x%08x", digest);
 
 	OK();
 };
@@ -85,13 +85,13 @@ void test_file_write(void) {
 	const char *err = nullptr;
 	Ox::String temp = Ox::FS::temp_path(&err);
 
-	BAD(err == nullptr, "GetTemporalPath did not succeed: %s", err);
+	ENFORCE(err == nullptr, "GetTemporalPath did not succeed: %s", err);
 
 	Ox::String path = temp + "/ox-test.txt";
 	Ox::FileStream fs = Ox::FS::open(path.c_str(), Ox::out, &err);
 
-	BAD(err == nullptr, "Couldn't open the file: %s", err);
-	BAD(fs.write((Ox::u8 *)text, 15, &err) == 0, "Couldn't write the file: %s", err);
+	ENFORCE(err == nullptr, "Couldn't open the file: %s", err);
+	ENFORCE(fs.write((Ox::u8 *)text, 15, &err) == 0, "Couldn't write the file: %s", err);
 
 	fs.close();
 
@@ -106,21 +106,21 @@ void test_file_read(void) {
 	const char *err = nullptr;
 	Ox::String temp = Ox::FS::temp_path(&err);
 
-	BAD(err == nullptr, "GetTemporalPath did not succeed: %s", err);
+	ENFORCE(err == nullptr, "GetTemporalPath did not succeed: %s", err);
 
 	Ox::String path = temp + "/ox-test.txt";
 	Ox::FileStream fs = Ox::FS::open(path.c_str(), Ox::in, &err);
 
-	BAD(err == nullptr, "Couldn't open the file: %s", err);
+	ENFORCE(err == nullptr, "Couldn't open the file: %s", err);
 
 	char buff[15];
 
-	BAD(fs.read((Ox::u8 *)buff, 15, &err) == 0, "Couldn't read the file: %s", err);
+	ENFORCE(fs.read((Ox::u8 *)buff, 15, &err) == 0, "Couldn't read the file: %s", err);
 
 	fs.close();
 
 	for(int i = 0; i < 14; i++)
-		BAD(buff[i] == text[i], "Failed comparison %i (read = %02x, actual = %02x)", text[i], buff[i]);
+		ENFORCE(buff[i] == text[i], "Failed comparison %i (read = %i, actual = %i)", text[i], buff[i]);
 
 	OK();
 };
