@@ -15,6 +15,8 @@
 ** along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
+#ifdef OX_TEST
+
 #include "../nuclei.hpp"
 #include "../crypto/crc.hpp"
 #include "../io/filesystem.hpp"
@@ -138,3 +140,5 @@ int main(void) {
 
 	return 0;
 };
+
+#endif
