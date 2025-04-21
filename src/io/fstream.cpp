@@ -144,7 +144,47 @@ namespace Ox {
 		f->seekp(off, __ox_impl_filestream_seekdir(dir));
 	};
 
-	int FileStream::read(u8 *s, ulong n, Error &err) {
+	long FileStream::ignore(ulong n, Error &err) {
+		if(err != nullptr)
+			return -1;
+
+		std::fstream *f = (std::fstream *)__ox_implptr;
+		if(f == nullptr) {
+			err = "Unitialized FileStream implementation";
+			return -1;
+		}
+
+		(void)f->ignore(n);
+
+		if(f->fail() && errno != 0) {
+			err = std::strerror(errno);
+			return -1;
+		}
+
+		return f->gcount();
+	};
+
+	long FileStream::ignore(ulong n, char delimitator, Error &err) {
+		if(err != nullptr)
+			return -1;
+
+		std::fstream *f = (std::fstream *)__ox_implptr;
+		if(f == nullptr) {
+			err = "Unitialized FileStream implementation";
+			return -1;
+		}
+
+		(void)f->ignore(n, delimitator);
+
+		if(f->fail() && errno != 0) {
+			err = std::strerror(errno);
+			return -1;
+		}
+
+		return f->gcount();
+	};
+
+	long FileStream::read(u8 *s, ulong n, Error &err) {
 		if(err != nullptr)
 			return -1;
 
@@ -161,12 +201,26 @@ namespace Ox {
 
 		(void)f->read((char *)s, n);
 
-		if(f->fail() && errno != 0) {
+		if(f->fail()) {
 			err = std::strerror(errno);
 			return -1;
 		}
 
-		return 0;
+		return f->gcount();
+	};
+
+	bool FileStream::eof(Error &err) {
+		if(err != nullptr)
+			return -1;
+
+		std::fstream *f = (std::fstream *)__ox_implptr;
+
+		if(f == nullptr) {
+			err = "Unitialized FileStream implementation";
+			return -1;
+		}
+
+		return f->eof();
 	};
 
 	int FileStream::write(u8 *s, ulong n, Error &err) {

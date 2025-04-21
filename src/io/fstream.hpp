@@ -40,7 +40,10 @@ namespace Ox {
 			void seekp(ulong pos);
 			void seekp(long off, seekdir dir);
 
-			int read(u8 *s, ulong n, Error &err);
+			long ignore(ulong n, Error &err);
+			long ignore(ulong n, char delimitator, Error &err);
+			long read(u8 *s, ulong n, Error &err);
+			bool eof(Error &err);
 			int write(u8 *s, ulong n, Error &err);
 	};
 };

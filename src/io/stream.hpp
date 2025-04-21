@@ -29,7 +29,10 @@ namespace Ox {
 			virtual void seekp(ulong pos) = 0;
 			virtual void seekp(i64 off, seekdir dir) = 0;
 			
-			virtual int read(u8 *s, ulong n, Error &err) = 0;
+			virtual long ignore(ulong n, Error &err) = 0;
+			virtual long ignore(ulong n, char delimitator, Error &err) = 0;
+			virtual long read(u8 *s, ulong n, Error &err) = 0;
+			virtual bool eof(Error &err) = 0;
 			virtual int write(u8 *s, ulong n, Error &err) = 0;
 			
 			u8 readU8(Error &err);
