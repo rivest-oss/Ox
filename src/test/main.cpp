@@ -117,7 +117,7 @@ void test_file_read(void) {
 
 	char buff[15];
 
-	ENFORCE(fs.read((Ox::u8 *)buff, 15, err) == 0, "Couldn't read the file: %s", err.c_str());
+	ENFORCE(fs.read((Ox::u8 *)buff, 15, err) == 15, "Couldn't read the file: %s", err.c_str());
 
 	fs.close();
 
