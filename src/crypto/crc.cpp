@@ -42,6 +42,9 @@ namespace Ox {
 	};
 			
 	void CRC32::update(u8 *data, ulong length) {
+		if(data == nullptr || length == 0)
+			return;
+
 		for(ulong i = 0; i < length; i++)
 			i_state = (i_state >> 8) ^ i_lookup_table[(u8)i_state ^ data[i]];
 	};
