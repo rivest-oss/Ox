@@ -27,8 +27,8 @@ namespace Ox {
 		return i;
 	};
 
-	int String::from(const char *source, const char **err) {
-		if(*err != nullptr)
+	int String::from(const char *source, Error &err) {
+		if(err != nullptr)
 			return -1;
 
 		char *s = (char *)implptr;
@@ -40,9 +40,10 @@ namespace Ox {
 
 		ulong len = static_cast<ulong>(strlen(source));
 
-		s = inhale<char>(len + 1, err);
+		const char *e = nullptr;
+		s = inhale<char>(len + 1, &e);
 		if(s == nullptr)
-			return - 1;
+			return -1;
 
 		for(ulong i = 0; i < len; i++)
 			s[i] = source[i];
@@ -58,23 +59,24 @@ namespace Ox {
 
 	String String::concat(const char *right) {
 		String str;
-		const char *err = nullptr;
+		Error err;
 
 		char *left = (char *)implptr;
 		if(left == nullptr) {
-			str.from(right, &err);
+			str.from(right, err);
 			return str;
 		}
 
 		if(right == nullptr) {
-			str.from(left, &err);
+			str.from(left, err);
 			return str;
 		}
 
 		ulong len_left = strlen(left);
 		ulong len_right = strlen(right);
 
-		char *b = inhale<char>(len_left + len_right + 1, &err);
+		const char *e = nullptr;
+		char *b = inhale<char>(len_left + len_right + 1, &e);
 		if(b == nullptr)
 			return str;
 
@@ -84,7 +86,7 @@ namespace Ox {
 		for(; *right != '\0'; i++)
 			b[i] = *right++;
 
-		str.from(b, &err);
+		str.from(b, err);
 		return str;
 	};
 

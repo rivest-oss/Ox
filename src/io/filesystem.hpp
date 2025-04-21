@@ -64,26 +64,26 @@ namespace Ox {
 			ulong available = -1;
 		} space_t;
 
-		String abs(const char *p, const char **err);
-		int cp(const char *from, const char *to, bool force, const char **err);
+		String abs(const char *p, Error &err);
+		int cp(const char *from, const char *to, bool force, Error &err);
 		// cp -r
-		int cp_all(const char *from, const char *to, bool force, const char **err);
-		int mv(const char *from, const char *to, const char **err);
+		int cp_all(const char *from, const char *to, bool force, Error &err);
+		int mv(const char *from, const char *to, Error &err);
 		// mkdir -p
-		int mkdir(const char *p, const char **err);
+		int mkdir(const char *p, Error &err);
 		// ln -s {to} {t}
-		int ln(const char *p, const char *to, const char **err);
-		int cd(const char *p, const char **err);
-		String cwd(const char **err);
-		bool exists(const char *p, const char **err);
-		int rm(const char *p, const char **err);
+		int ln(const char *p, const char *to, Error &err);
+		int cd(const char *p, Error &err);
+		String cwd(Error &err);
+		bool exists(const char *p, Error &err);
+		int rm(const char *p, Error &err);
 		// rm -r
-		int rm_all(const char *p, const char **err);
-		String temp_path(const char **err);
-		signed long file_size(const char *p, const char **err);
-		status_t status(const char *p, const char **err);
-		space_t space(const char *p, const char **err);
+		int rm_all(const char *p, Error &err);
+		String temp_path(Error &err);
+		signed long file_size(const char *p, Error &err);
+		status_t status(const char *p, Error &err);
+		space_t space(const char *p, Error &err);
 
-		FileStream open(const char *p, openmode mode, const char **err);
+		FileStream open(const char *p, openmode mode, Error &err);
 	};
 };

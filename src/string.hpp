@@ -27,7 +27,7 @@ namespace Ox {
 			void *implptr = nullptr;
 
 		public:
-			int from(const char *source, const char **err);
+			int from(const char *source, Error &err);
 			const char *c_str(void);
 
 			String concat(const char *with);

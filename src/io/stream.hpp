@@ -29,59 +29,59 @@ namespace Ox {
 			virtual void seekp(ulong pos) = 0;
 			virtual void seekp(i64 off, seekdir dir) = 0;
 			
-			virtual int read(u8 *s, ulong n, const char **err) = 0;
-			virtual int write(u8 *s, ulong n, const char **err) = 0;
+			virtual int read(u8 *s, ulong n, Error &err) = 0;
+			virtual int write(u8 *s, ulong n, Error &err) = 0;
 			
-			u8 readU8(const char **err);
+			u8 readU8(Error &err);
 
-			u16 readU16BE(const char **err);
-			u32 readU32BE(const char **err);
-			u64 readU64BE(const char **err);
+			u16 readU16BE(Error &err);
+			u32 readU32BE(Error &err);
+			u64 readU64BE(Error &err);
 			
-			u16 readU16LE(const char **err);
-			u32 readU32LE(const char **err);
-			u64 readU64LE(const char **err);
+			u16 readU16LE(Error &err);
+			u32 readU32LE(Error &err);
+			u64 readU64LE(Error &err);
 
-			i8 readI8(const char **err);
+			i8 readI8(Error &err);
 
-			i16 readI16BE(const char **err);
-			i32 readI32BE(const char **err);
-			i64 readI64BE(const char **err);
+			i16 readI16BE(Error &err);
+			i32 readI32BE(Error &err);
+			i64 readI64BE(Error &err);
 			
-			i16 readI16LE(const char **err);
-			i32 readI32LE(const char **err);
-			i64 readI64LE(const char **err);
+			i16 readI16LE(Error &err);
+			i32 readI32LE(Error &err);
+			i64 readI64LE(Error &err);
 
-			f32 readF32BE(const char **err);
-			f64 readF64BE(const char **err);
+			f32 readF32BE(Error &err);
+			f64 readF64BE(Error &err);
 
-			f32 readF32LE(const char **err);
-			f64 readF64LE(const char **err);
+			f32 readF32LE(Error &err);
+			f64 readF64LE(Error &err);
 			
-			int writeU8(u8 value, const char **err);
+			int writeU8(u8 value, Error &err);
 
-			int writeU16BE(u16 value, const char **err);
-			int writeU32BE(u32 value, const char **err);
-			int writeU64BE(u64 value, const char **err);
+			int writeU16BE(u16 value, Error &err);
+			int writeU32BE(u32 value, Error &err);
+			int writeU64BE(u64 value, Error &err);
 			
-			int writeU16LE(u16 value, const char **err);
-			int writeU32LE(u32 value, const char **err);
-			int writeU64LE(u64 value, const char **err);
+			int writeU16LE(u16 value, Error &err);
+			int writeU32LE(u32 value, Error &err);
+			int writeU64LE(u64 value, Error &err);
 			
-			int writeI8(i8 value, const char **err);
+			int writeI8(i8 value, Error &err);
 			
-			int writeI16BE(i16 value, const char **err);
-			int writeI32BE(i32 value, const char **err);
-			int writeI64BE(i64 value, const char **err);
+			int writeI16BE(i16 value, Error &err);
+			int writeI32BE(i32 value, Error &err);
+			int writeI64BE(i64 value, Error &err);
 			
-			int writeI16LE(i16 value, const char **err);
-			int writeI32LE(i32 value, const char **err);
-			int writeI64LE(i64 value, const char **err);
+			int writeI16LE(i16 value, Error &err);
+			int writeI32LE(i32 value, Error &err);
+			int writeI64LE(i64 value, Error &err);
 			
-			int writeF32BE(float value, const char **err);
-			int writeF64BE(double value, const char **err);
+			int writeF32BE(float value, Error &err);
+			int writeF64BE(double value, Error &err);
 
-			int writeF32LE(float value, const char **err);
-			int writeF64LE(double value, const char **err);
+			int writeF32LE(float value, Error &err);
+			int writeF64LE(double value, Error &err);
 	};
 };

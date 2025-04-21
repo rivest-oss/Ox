@@ -21,10 +21,10 @@
 
 namespace Ox {
 	namespace FS {
-		String abs(const char *p, const char **err) {
+		String abs(const char *p, Error &err) {
 			String str;
 
-			if(*err != nullptr)
+			if(err != nullptr)
 				return str;
 
 			std::filesystem::path path = std::filesystem::absolute(p);
@@ -33,8 +33,8 @@ namespace Ox {
 			return str;
 		};
 
-		int cp(const char *from, const char *to, bool force, const char **err) {
-			if(*err != nullptr)
+		int cp(const char *from, const char *to, bool force, Error &err) {
+			if(err != nullptr)
 				return -1;
 
 			try {
@@ -43,15 +43,15 @@ namespace Ox {
 				else
 					std::filesystem::copy(from, to);
 			} catch(const std::filesystem::filesystem_error &e) {
-				*err = e.what();
+				err = e.what();
 				return -1;
 			};
 
 			return 0;
 		};
 
-		int cp_all(const char *from, const char *to, bool force, const char **err) {
-			if(*err != nullptr)
+		int cp_all(const char *from, const char *to, bool force, Error &err) {
+			if(err != nullptr)
 				return -1;
 
 			try {
@@ -63,155 +63,155 @@ namespace Ox {
 					std::filesystem::copy(from, to,
 						std::filesystem::copy_options::recursive);
 			} catch(const std::filesystem::filesystem_error &e) {
-				*err = e.what();
+				err = e.what();
 				return -1;
 			};
 
 			return 0;
 		};
 
-		int mv(const char *from, const char *to, const char **err) {
-			if(*err != nullptr)
+		int mv(const char *from, const char *to, Error &err) {
+			if(err != nullptr)
 				return -1;
 
 			try {
 				std::filesystem::rename(from, to);
 			} catch(const std::filesystem::filesystem_error &e) {
-				*err = e.what();
+				err = e.what();
 				return -1;
 			};
 
 			return 0;
 		};
 
-		int mkdir(const char *p, const char **err) {
-			if(*err != nullptr)
+		int mkdir(const char *p, Error &err) {
+			if(err != nullptr)
 				return -1;
 
 			try {
 				std::filesystem::create_directories(p);
 			} catch(const std::filesystem::filesystem_error &e) {
-				*err = e.what();
+				err = e.what();
 				return -1;
 			};
 
 			return 0;
 		};
 
-		int ln(const char *p, const char *to, const char **err) {
-			if(*err != nullptr)
+		int ln(const char *p, const char *to, Error &err) {
+			if(err != nullptr)
 				return -1;
 
 			try {
 				std::filesystem::create_symlink(to, p);
 			} catch(const std::filesystem::filesystem_error &e) {
-				*err = e.what();
+				err = e.what();
 				return -1;
 			};
 
 			return 0;
 		};
 
-		int cd(const char *p, const char **err) {
-			if(*err != nullptr)
+		int cd(const char *p, Error &err) {
+			if(err != nullptr)
 				return -1;
 
 			try {
 				(void)std::filesystem::current_path(p);
 			} catch(const std::filesystem::filesystem_error &e) {
-				*err = e.what();
+				err = e.what();
 				return -1;
 			};
 
 			return 0;
 		};
 
-		String cwd(const char **err) {
+		String cwd(Error &err) {
 			String str;
 
-			if(*err != nullptr)
+			if(err != nullptr)
 				return str;
 
 			try {
 				std::filesystem::path path = std::filesystem::current_path();
 				str.from(path.c_str(), err);
 			} catch(const std::filesystem::filesystem_error &e) {
-				*err = e.what();
+				err = e.what();
 			};
 
 			return str;
 		};
 
-		bool exists(const char *p, const char **err) {
-			if(*err != nullptr)
+		bool exists(const char *p, Error &err) {
+			if(err != nullptr)
 				return false;
 
 			try {
 				return std::filesystem::exists(p);
 			} catch(const std::filesystem::filesystem_error &e) {
-				*err = e.what();
+				err = e.what();
 				return false;
 			};
 		};
 
-		int rm(const char *p, const char **err) {
-			if(*err != nullptr)
+		int rm(const char *p, Error &err) {
+			if(err != nullptr)
 				return -1;
 
 			try {
 				(void)std::filesystem::remove(p);
 				return 0;
 			} catch(const std::filesystem::filesystem_error &e) {
-				*err = e.what();
+				err = e.what();
 				return -1;
 			};
 		};
 
-		int rm_all(const char *p, const char **err) {
-			if(*err != nullptr)
+		int rm_all(const char *p, Error &err) {
+			if(err != nullptr)
 				return -1;
 
 			try {
 				(void)std::filesystem::remove_all(p);
 				return 0;
 			} catch(const std::filesystem::filesystem_error &e) {
-				*err = e.what();
+				err = e.what();
 				return -1;
 			};
 		};
 
-		String temp_path(const char **err) {
+		String temp_path(Error &err) {
 			String str;
 
-			if(*err != nullptr)
+			if(err != nullptr)
 				return str;
 
 			try {
 				std::filesystem::path path = std::filesystem::temp_directory_path();
 				str.from(path.c_str(), err);
 			} catch(const std::filesystem::filesystem_error &e) {
-				*err = e.what();
+				err = e.what();
 			};
 
 			return str;
 		};
 
-		signed long file_size(const char *p, const char **err) {
-			if(*err != nullptr)
+		signed long file_size(const char *p, Error &err) {
+			if(err != nullptr)
 				return -1;
 
 			try {
 				return static_cast<signed long>(std::filesystem::file_size(p));
 			} catch(const std::filesystem::filesystem_error &e) {
-				*err = e.what();
+				err = e.what();
 				return -1;
 			};
 		};
 
-		status_t status(const char *path, const char **err) {
+		status_t status(const char *path, Error &err) {
 			status_t stat;
 
-			if(*err != nullptr)
+			if(err != nullptr)
 				return stat;
 
 			try {
@@ -257,16 +257,16 @@ namespace Ox {
 					stat.size = 0;
 				};
 			} catch(const std::filesystem::filesystem_error &e) {
-				*err = e.what();
+				err = e.what();
 			};
 
 			return stat;
 		};
 
-		space_t space(const char *p, const char **err) {
+		space_t space(const char *p, Error &err) {
 			space_t s;
 
-			if(*err != nullptr)
+			if(err != nullptr)
 				return s;
 
 			try {
@@ -276,13 +276,13 @@ namespace Ox {
 				s.free = static_cast<ulong>(nfo.free);
 				s.available = static_cast<ulong>(nfo.available);
 			} catch(const std::filesystem::filesystem_error &e) {
-				*err = e.what();
+				err = e.what();
 			};
 
 			return s;
 		};
 
-		FileStream open(const char *p, openmode mode, const char **err) {
+		FileStream open(const char *p, openmode mode, Error &err) {
 			FileStream fs;
 			(void)fs.open(p, mode, err);
 			return fs;

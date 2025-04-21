@@ -28,7 +28,7 @@ namespace Ox {
 				close();
 			};
 
-			int open(const char *path, openmode mode, const char **err);
+			int open(const char *path, openmode mode, Error &err);
 			bool is_open(void);
 			void close(void);
 
@@ -40,7 +40,7 @@ namespace Ox {
 			void seekp(ulong pos);
 			void seekp(long off, seekdir dir);
 
-			int read(u8 *s, ulong n, const char **err);
-			int write(u8 *s, ulong n, const char **err);
+			int read(u8 *s, ulong n, Error &err);
+			int write(u8 *s, ulong n, Error &err);
 	};
 };

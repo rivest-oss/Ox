@@ -84,16 +84,16 @@ void test_file_write(void) {
 
 	const char *text = "Oxygen lives!\r\n";
 
-	const char *err = nullptr;
-	Ox::String temp = Ox::FS::temp_path(&err);
+	Ox::Error err;
+	Ox::String temp = Ox::FS::temp_path(err);
 
-	ENFORCE(err == nullptr, "GetTemporalPath did not succeed: %s", err);
+	ENFORCE(err == nullptr, "GetTemporalPath did not succeed: %s", err.c_str());
 
 	Ox::String path = temp + "/ox-test.txt";
-	Ox::FileStream fs = Ox::FS::open(path.c_str(), Ox::out, &err);
+	Ox::FileStream fs = Ox::FS::open(path.c_str(), Ox::out, err);
 
-	ENFORCE(err == nullptr, "Couldn't open the file: %s", err);
-	ENFORCE(fs.write((Ox::u8 *)text, 15, &err) == 0, "Couldn't write the file: %s", err);
+	ENFORCE(err == nullptr, "Couldn't open the file: %s", err.c_str());
+	ENFORCE(fs.write((Ox::u8 *)text, 15, err) == 0, "Couldn't write the file: %s", err.c_str());
 
 	fs.close();
 
@@ -105,19 +105,19 @@ void test_file_read(void) {
 
 	const char *text = "Oxygen lives!\r\n";
 
-	const char *err = nullptr;
-	Ox::String temp = Ox::FS::temp_path(&err);
+	Ox::Error err;
+	Ox::String temp = Ox::FS::temp_path(err);
 
-	ENFORCE(err == nullptr, "GetTemporalPath did not succeed: %s", err);
+	ENFORCE(err == nullptr, "GetTemporalPath did not succeed: %s", err.c_str());
 
 	Ox::String path = temp + "/ox-test.txt";
-	Ox::FileStream fs = Ox::FS::open(path.c_str(), Ox::in, &err);
+	Ox::FileStream fs = Ox::FS::open(path.c_str(), Ox::in, err);
 
-	ENFORCE(err == nullptr, "Couldn't open the file: %s", err);
+	ENFORCE(err == nullptr, "Couldn't open the file: %s", err.c_str());
 
 	char buff[15];
 
-	ENFORCE(fs.read((Ox::u8 *)buff, 15, &err) == 0, "Couldn't read the file: %s", err);
+	ENFORCE(fs.read((Ox::u8 *)buff, 15, err) == 0, "Couldn't read the file: %s", err.c_str());
 
 	fs.close();
 

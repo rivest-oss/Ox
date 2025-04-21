@@ -37,25 +37,29 @@ namespace Ox {
 		return std::ios::beg;
 	};
 
-	int FileStream::open(const char *path, openmode mode, const char **err) {
+	int FileStream::open(const char *path, openmode mode, Error &err) {
 		std::fstream *f = (std::fstream *)__ox_implptr;
-		if(*err != nullptr)
+		if(err != nullptr)
 			return -1;
 
 		if(f != nullptr && is_open()) {
-			*err = "File stream is already open";
+			err = "File stream is already open";
 			return -1;
 		}
 
 		if(path == nullptr) {
-			*err = "Null 'path'";
+			err = "'path' is NULL";
 			return -1;
 		}
 
 		if(f == nullptr) {
-			f = inhale<std::fstream>(err);
-			if(*err != nullptr)
+			const char *e = nullptr;
+
+			f = inhale<std::fstream>(&e);
+			if(e != nullptr) {
+				err = e;
 				return -1;
+			}
 
 			new (f) std::fstream();
 		}
@@ -66,7 +70,7 @@ namespace Ox {
 		f->close();
 		f->open(path, __ox_impl_filestream_openmode(mode));
 		if(f->fail()) {
-			*err = std::strerror(errno);
+			err = std::strerror(errno);
 			close();
 			return -1;
 		}
@@ -143,40 +147,40 @@ namespace Ox {
 		f->seekp(off, __ox_impl_filestream_seekdir(dir));
 	};
 
-	int FileStream::read(u8 *s, ulong n, const char **err) {
+	int FileStream::read(u8 *s, ulong n, Error &err) {
 		std::fstream *f = (std::fstream *)__ox_implptr;
 		if(f == nullptr) {
-			*err = "Unitialized FileStream implementation";
+			err = "Unitialized FileStream implementation";
 			return -1;
 		}
 
-		if(*err != nullptr)
+		if(err != nullptr)
 			return -1;
 
 		(void)f->read((char *)s, n);
 
 		if(f->fail() && errno != 0) {
-			*err = std::strerror(errno);
+			err = std::strerror(errno);
 			return -1;
 		}
 
 		return 0;
 	};
 
-	int FileStream::write(u8 *s, ulong n, const char **err) {
+	int FileStream::write(u8 *s, ulong n, Error &err) {
 		std::fstream *f = (std::fstream *)__ox_implptr;
 		if(f == nullptr) {
-			*err = "Unitialized FileStream implementation";
+			err = "Unitialized FileStream implementation";
 			return -1;
 		}
 
-		if(*err != nullptr)
+		if(err != nullptr)
 			return -1;
 
 		(void)f->write((char *)s, n);
 
 		if(f->fail() && errno != 0) {
-			*err = std::strerror(errno);
+			err = std::strerror(errno);
 			return -1;
 		}
 
