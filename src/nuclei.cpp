@@ -30,6 +30,17 @@ namespace Ox {
 		std::exit(1);
 	};
 
+	void *__ox_alloc(ulong n, const char **err) {
+		if(*err != nullptr)
+			return nullptr;
+		
+		void *p = std::calloc(n, 1);
+		if(p == nullptr)
+			*err = "Couldn't allocate enough memory";
+		
+		return p;
+	};
+
 	void exhale(void *p) {
 		if(p == nullptr)
 			return;
@@ -44,7 +55,7 @@ namespace Ox {
 		src = nullptr;
 	};
 
-	int Error::from(const char *format, ...) {
+	int Error::fromf(const char *format, ...) {
 		if(src != nullptr)
 			return 1;
 
@@ -54,7 +65,8 @@ namespace Ox {
 		ulong len = std::vsnprintf(nullptr, 0, format, args);
 		va_end(args);
 
-		char *buff = inhale<char>(len + 1, &src);
+		char *buff = (char *)__ox_alloc(sizeof(char) * (len + 1), &src);
+
 		if(buff == nullptr) {
 			var = false;
 			return -1;
@@ -70,7 +82,7 @@ namespace Ox {
 		return 0;
 	};
 
-	int Error::from_c_str(const char *str) {
+	int Error::from(const char *str) {
 		if(src != nullptr)
 			return 1;
 

@@ -53,13 +53,9 @@ namespace Ox {
 		}
 
 		if(f == nullptr) {
-			const char *e = nullptr;
-
-			f = inhale<std::fstream>(&e);
-			if(e != nullptr) {
-				err = e;
+			f = inhale<std::fstream>(err);
+			if(f == nullptr)
 				return -1;
-			}
 
 			new (f) std::fstream();
 		}

@@ -56,28 +56,8 @@ namespace Ox {
 		#define xassert(x,y) (void)0;
 	#endif
 
-	// Allocates memory.
-	template<typename T>
-	T *inhale(u64 count, const char **err) {
-		if(*err != nullptr)
-			return nullptr;
-
-		void *p = std::calloc(count, sizeof(T));
-		if(p == nullptr) {
-			*err = "Couldn't allocate enough memory";
-			return nullptr;
-		}
-
-		return (T *)p;
-	};
-	
-	template<typename T>
-	T *inhale(const char **err) {
-		return inhale<T>(1, err);
-	};
-
-	// Frees previously allocated memory.
-	void exhale(void *p);
+	// Implementation of 'alloc'.
+	void *__ox_alloc(ulong n, const char **err);
 
 	typedef enum {
 		in = 1 << 0,
@@ -156,12 +136,12 @@ namespace Ox {
 				return src;
 			};
 
-			int from(const char *format, ...);
-			int from_c_str(const char *str);
+			int fromf(const char *format, ...);
+			int from(const char *str);
 
 			Error &operator=(const char *str) {
 				clear();
-				from_c_str(str);
+				from(str);
 
 				return *this;
 			};
@@ -174,4 +154,26 @@ namespace Ox {
 				return src != p;
 			};
 	};
+
+	// Allocates memory.
+	template<typename T>
+	T *inhale(ulong n, Error &err) {
+		if(err != nullptr)
+			return nullptr;
+
+		const char *e = nullptr;
+		T *p = (T *)__ox_alloc(n * sizeof(T), &e);
+		if(p == nullptr)
+			err = e;
+
+		return p;
+	};
+	
+	template<typename T>
+	T *inhale(Error &err) {
+		return inhale<T>(1, err);
+	};
+	
+	// Frees previously allocated memory.
+	void exhale(void *p);
 };

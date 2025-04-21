@@ -40,8 +40,7 @@ namespace Ox {
 
 		ulong len = static_cast<ulong>(strlen(source));
 
-		const char *e = nullptr;
-		s = inhale<char>(len + 1, &e);
+		s = inhale<char>(len + 1, err);
 		if(s == nullptr)
 			return -1;
 
@@ -75,8 +74,7 @@ namespace Ox {
 		ulong len_left = strlen(left);
 		ulong len_right = strlen(right);
 
-		const char *e = nullptr;
-		char *b = inhale<char>(len_left + len_right + 1, &e);
+		char *b = inhale<char>(len_left + len_right + 1, err);
 		if(b == nullptr)
 			return str;
 
