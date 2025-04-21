@@ -139,4 +139,39 @@ namespace Ox {
 			return x;
 		#endif
 	};
+
+	class Error {
+		private:
+			bool var = false;
+			const char *src = nullptr;
+		
+		public:
+			~Error(void) {
+				clear();
+			};
+
+			void clear(void);
+
+			const char *c_str(void) {
+				return src;
+			};
+
+			int from(const char *format, ...);
+			int from_c_str(const char *str);
+
+			Error &operator=(const char *str) {
+				clear();
+				from_c_str(str);
+
+				return *this;
+			};
+
+			bool operator==(void *p) {
+				return src == p;
+			};
+
+			bool operator!=(void *p) {
+				return src != p;
+			};
+	};
 };
