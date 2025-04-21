@@ -39,16 +39,17 @@ namespace Ox {
 
 	int FileStream::open(const char *path, openmode mode, Error &err) {
 		std::fstream *f = (std::fstream *)__ox_implptr;
+
 		if(err != nullptr)
 			return -1;
 
-		if(f != nullptr && is_open()) {
-			err = "File stream is already open";
+		if(path == nullptr) {
+			err = "'path' is NULL";
 			return -1;
 		}
 
-		if(path == nullptr) {
-			err = "'path' is NULL";
+		if(f != nullptr && is_open()) {
+			err = "File stream is already open";
 			return -1;
 		}
 
@@ -144,14 +145,19 @@ namespace Ox {
 	};
 
 	int FileStream::read(u8 *s, ulong n, Error &err) {
+		if(err != nullptr)
+			return -1;
+
 		std::fstream *f = (std::fstream *)__ox_implptr;
 		if(f == nullptr) {
 			err = "Unitialized FileStream implementation";
 			return -1;
 		}
 
-		if(err != nullptr)
+		if(s == nullptr) {
+			err = "'s' is NULL";
 			return -1;
+		}
 
 		(void)f->read((char *)s, n);
 
@@ -164,14 +170,20 @@ namespace Ox {
 	};
 
 	int FileStream::write(u8 *s, ulong n, Error &err) {
+		if(err != nullptr)
+			return -1;
+
 		std::fstream *f = (std::fstream *)__ox_implptr;
+
 		if(f == nullptr) {
 			err = "Unitialized FileStream implementation";
 			return -1;
 		}
 
-		if(err != nullptr)
+		if(s == nullptr) {
+			err = "'s' is NULL";
 			return -1;
+		}
 
 		(void)f->write((char *)s, n);
 

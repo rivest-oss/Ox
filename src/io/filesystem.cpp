@@ -16,7 +16,6 @@
 **/
 
 #include "filesystem.hpp"
-#include <cstdio>
 #include <filesystem>
 
 namespace Ox {
@@ -27,6 +26,11 @@ namespace Ox {
 			if(err != nullptr)
 				return str;
 
+			if(p == nullptr) {
+				err = "'p' is NULL";
+				return str;
+			}
+
 			std::filesystem::path path = std::filesystem::absolute(p);
 
 			str.from(path.c_str(), err);
@@ -36,6 +40,16 @@ namespace Ox {
 		int cp(const char *from, const char *to, bool force, Error &err) {
 			if(err != nullptr)
 				return -1;
+
+			if(from == nullptr) {
+				err = "'from' is NULL";
+				return -1;
+			}
+
+			if(to == nullptr) {
+				err = "'to' is NULL";
+				return -1;
+			}
 
 			try {
 				if(force)
@@ -53,6 +67,16 @@ namespace Ox {
 		int cp_all(const char *from, const char *to, bool force, Error &err) {
 			if(err != nullptr)
 				return -1;
+
+			if(from == nullptr) {
+				err = "'from' is NULL";
+				return -1;
+			}
+
+			if(to == nullptr) {
+				err = "'to' is NULL";
+				return -1;
+			}
 
 			try {
 				if(force)
@@ -74,6 +98,16 @@ namespace Ox {
 			if(err != nullptr)
 				return -1;
 
+			if(from == nullptr) {
+				err = "'from' is NULL";
+				return -1;
+			}
+
+			if(to == nullptr) {
+				err = "'to' is NULL";
+				return -1;
+			}
+
 			try {
 				std::filesystem::rename(from, to);
 			} catch(const std::filesystem::filesystem_error &e) {
@@ -88,6 +122,11 @@ namespace Ox {
 			if(err != nullptr)
 				return -1;
 
+			if(p == nullptr) {
+				err = "'p' is NULL";
+				return -1;
+			}
+
 			try {
 				std::filesystem::create_directories(p);
 			} catch(const std::filesystem::filesystem_error &e) {
@@ -101,6 +140,16 @@ namespace Ox {
 		int ln(const char *p, const char *to, Error &err) {
 			if(err != nullptr)
 				return -1;
+			
+			if(p == nullptr) {
+				err = "'p' is NULL";
+				return -1;
+			}
+
+			if(to == nullptr) {
+				err = "'to' is NULL";
+				return -1;
+			}
 
 			try {
 				std::filesystem::create_symlink(to, p);
@@ -115,6 +164,11 @@ namespace Ox {
 		int cd(const char *p, Error &err) {
 			if(err != nullptr)
 				return -1;
+
+			if(p == nullptr) {
+				err = "'p' is NULL";
+				return -1;
+			}
 
 			try {
 				(void)std::filesystem::current_path(p);
@@ -146,6 +200,11 @@ namespace Ox {
 			if(err != nullptr)
 				return false;
 
+			if(p == nullptr) {
+				err = "'p' is NULL";
+				return -1;
+			}
+
 			try {
 				return std::filesystem::exists(p);
 			} catch(const std::filesystem::filesystem_error &e) {
@@ -157,6 +216,11 @@ namespace Ox {
 		int rm(const char *p, Error &err) {
 			if(err != nullptr)
 				return -1;
+
+			if(p == nullptr) {
+				err = "'p' is NULL";
+				return -1;
+			}
 
 			try {
 				(void)std::filesystem::remove(p);
@@ -170,6 +234,11 @@ namespace Ox {
 		int rm_all(const char *p, Error &err) {
 			if(err != nullptr)
 				return -1;
+
+			if(p == nullptr) {
+				err = "'p' is NULL";
+				return -1;
+			}
 
 			try {
 				(void)std::filesystem::remove_all(p);
@@ -200,6 +269,11 @@ namespace Ox {
 			if(err != nullptr)
 				return -1;
 
+			if(p == nullptr) {
+				err = "'p' is NULL";
+				return -1;
+			}
+
 			try {
 				return static_cast<signed long>(std::filesystem::file_size(p));
 			} catch(const std::filesystem::filesystem_error &e) {
@@ -213,6 +287,11 @@ namespace Ox {
 
 			if(err != nullptr)
 				return stat;
+
+			if(path == nullptr) {
+				err = "'path' is NULL";
+				return stat;
+			}
 
 			try {
 				std::filesystem::file_status s = std::filesystem::status(path);
@@ -269,6 +348,11 @@ namespace Ox {
 			if(err != nullptr)
 				return s;
 
+			if(p == nullptr) {
+				err = "'p' is NULL";
+				return s;
+			}
+
 			try {
 				std::filesystem::space_info nfo = std::filesystem::space(p);
 
@@ -284,7 +368,9 @@ namespace Ox {
 
 		FileStream open(const char *p, openmode mode, Error &err) {
 			FileStream fs;
+
 			(void)fs.open(p, mode, err);
+
 			return fs;
 		};
 	};

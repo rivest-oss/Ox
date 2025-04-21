@@ -31,6 +31,8 @@ namespace Ox {
 	};
 
 	void *__ox_alloc(ulong n, const char **err) {
+		if(err == nullptr)
+			return nullptr;
 		if(*err != nullptr)
 			return nullptr;
 		
@@ -59,6 +61,11 @@ namespace Ox {
 		if(src != nullptr)
 			return 1;
 
+		if(format == nullptr) {
+			src = "'format' is NULL";
+			return -1;
+		}
+
 		std::va_list args;
 
 		va_start(args, format);
@@ -82,9 +89,14 @@ namespace Ox {
 		return 0;
 	};
 
-	int Error::from(const char *str) {
+	int Error::fromc(const char *str) {
 		if(src != nullptr)
 			return 1;
+		
+		if(src == nullptr) {
+			src = "'str' is NULL";
+			return -1;
+		}
 
 		var = false;
 		src = str;

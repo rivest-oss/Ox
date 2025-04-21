@@ -20,6 +20,9 @@
 
 namespace Ox {
 	ulong strlen(const char *str) {
+		if(str == nullptr)
+			return 0;
+
 		ulong i = 0;
 		while(*str != '\0')
 			{ str++; i++; };
@@ -30,6 +33,11 @@ namespace Ox {
 	int String::from(const char *source, Error &err) {
 		if(err != nullptr)
 			return -1;
+
+		if(source == nullptr) {
+			err = "'source' is NULL";
+			return -1;
+		}
 
 		char *s = (char *)implptr;
 
@@ -59,6 +67,9 @@ namespace Ox {
 	String String::concat(const char *right) {
 		String str;
 		Error err;
+
+		if(right == nullptr)
+			return str;
 
 		char *left = (char *)implptr;
 		if(left == nullptr) {
