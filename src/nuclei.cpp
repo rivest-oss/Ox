@@ -93,7 +93,7 @@ namespace Ox {
 		if(src != nullptr)
 			return 1;
 		
-		if(src == nullptr) {
+		if(str == nullptr) {
 			src = "'str' is NULL";
 			return -1;
 		}
