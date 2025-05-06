@@ -127,6 +127,24 @@ void test_file_read(void) {
 	OK();
 };
 
+void test_dir_read(void) {
+	SUPERVISE("File system/Read directory");
+
+	Ox::Error err;
+	Ox::FS::Directory dir = Ox::FS::opendir(".", err);
+
+	ENFORCE(err == nullptr, "Couldn't read the directory: %s", err.c_str());
+
+	while(true) {
+		Ox::String s = dir.next(err);
+		ENFORCE(err == nullptr, "Couldn't read the next file in the directory: %s", err.c_str());
+
+		if(s.c_str() == nullptr)
+			break;
+	};
+
+	OK();
+};
 
 int main(void) {
 	std::printf("\x1b[0m");
@@ -137,6 +155,7 @@ int main(void) {
 
 	test_file_write();
 	test_file_read();
+	test_dir_read();
 
 	return 0;
 };
