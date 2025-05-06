@@ -96,6 +96,8 @@ namespace Ox {
 			b[i] = *right++;
 
 		str.from(b, err);
+		exhale(b);
+		
 		return str;
 	};
 
