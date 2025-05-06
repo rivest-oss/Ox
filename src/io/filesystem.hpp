@@ -64,6 +64,22 @@ namespace Ox {
 			ulong available = -1;
 		} space_t;
 
+		class Directory {
+			private:
+				void *implptr = nullptr;
+				bool end = true;
+			
+			public:
+				~Directory(void);
+
+				int open(const char *p, Error &err);
+				bool is_open(void);
+				void close(void);
+
+				String current(Error &err);
+				String next(Error &err);
+		};
+
 		String abs(const char *p, Error &err);
 		int cp(const char *from, const char *to, bool force, Error &err);
 		// cp -r
@@ -85,5 +101,6 @@ namespace Ox {
 		space_t space(const char *p, Error &err);
 
 		FileStream open(const char *p, openmode mode, Error &err);
+		Directory opendir(const char *p, Error &err);
 	};
 };

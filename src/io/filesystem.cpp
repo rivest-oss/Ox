@@ -293,9 +293,11 @@ namespace Ox {
 				return stat;
 			}
 
+			namespace stdfs = std::filesystem;
+
 			try {
-				std::filesystem::file_status s = std::filesystem::status(path);
-				std::filesystem::perms p = s.permissions();
+				stdfs::file_status s = stdfs::status(path);
+				stdfs::perms p = s.permissions();
 				u16 perms = file_perms::null;
 
 				// The art: Eyehurter.
@@ -303,39 +305,39 @@ namespace Ox {
 
 				// [FIXME] Incorrect file type (unknown).
 				switch(s.type()) {
-					case std::filesystem::file_type::none: stat.type = file_type::none;
-					case std::filesystem::file_type::not_found: stat.type = file_type::not_found;
-					case std::filesystem::file_type::regular: stat.type = file_type::regular;
-					case std::filesystem::file_type::directory: stat.type = file_type::directory;
-					case std::filesystem::file_type::symlink: stat.type = file_type::symlink;
-					case std::filesystem::file_type::block: stat.type = file_type::block;
-					case std::filesystem::file_type::character: stat.type = file_type::character;
-					case std::filesystem::file_type::fifo: stat.type = file_type::fifo;
-					case std::filesystem::file_type::socket: stat.type = file_type::socket;
-					case std::filesystem::file_type::unknown: stat.type = file_type::unknown;
+					case stdfs::file_type::none: stat.type = file_type::none;
+					case stdfs::file_type::not_found: stat.type = file_type::not_found;
+					case stdfs::file_type::regular: stat.type = file_type::regular;
+					case stdfs::file_type::directory: stat.type = file_type::directory;
+					case stdfs::file_type::symlink: stat.type = file_type::symlink;
+					case stdfs::file_type::block: stat.type = file_type::block;
+					case stdfs::file_type::character: stat.type = file_type::character;
+					case stdfs::file_type::fifo: stat.type = file_type::fifo;
+					case stdfs::file_type::socket: stat.type = file_type::socket;
+					case stdfs::file_type::unknown: stat.type = file_type::unknown;
 				};
 
-				if((p & std::filesystem::perms::owner_read) != std::filesystem::perms::none) perms |= file_perms::owner_read;
-				if((p & std::filesystem::perms::owner_write) != std::filesystem::perms::none) perms |= file_perms::owner_write;
-				if((p & std::filesystem::perms::owner_exec) != std::filesystem::perms::none) perms |= file_perms::owner_exec;
+				if((p & stdfs::perms::owner_read) != stdfs::perms::none) perms |= file_perms::owner_read;
+				if((p & stdfs::perms::owner_write) != stdfs::perms::none) perms |= file_perms::owner_write;
+				if((p & stdfs::perms::owner_exec) != stdfs::perms::none) perms |= file_perms::owner_exec;
 
-				if((p & std::filesystem::perms::group_read) != std::filesystem::perms::none) perms |= file_perms::group_read;
-				if((p & std::filesystem::perms::group_write) != std::filesystem::perms::none) perms |= file_perms::group_write;
-				if((p & std::filesystem::perms::group_exec) != std::filesystem::perms::none) perms |= file_perms::group_exec;
+				if((p & stdfs::perms::group_read) != stdfs::perms::none) perms |= file_perms::group_read;
+				if((p & stdfs::perms::group_write) != stdfs::perms::none) perms |= file_perms::group_write;
+				if((p & stdfs::perms::group_exec) != stdfs::perms::none) perms |= file_perms::group_exec;
 
-				if((p & std::filesystem::perms::others_read) != std::filesystem::perms::none) perms |= file_perms::others_read;
-				if((p & std::filesystem::perms::others_write) != std::filesystem::perms::none) perms |= file_perms::others_write;
-				if((p & std::filesystem::perms::others_exec) != std::filesystem::perms::none) perms |= file_perms::others_exec;
+				if((p & stdfs::perms::others_read) != stdfs::perms::none) perms |= file_perms::others_read;
+				if((p & stdfs::perms::others_write) != stdfs::perms::none) perms |= file_perms::others_write;
+				if((p & stdfs::perms::others_exec) != stdfs::perms::none) perms |= file_perms::others_exec;
 
 				stat.perms = perms;
 
 				try {
-					stat.size = static_cast<ulong>(std::filesystem::file_size(path));
-				} catch(const std::filesystem::filesystem_error &e) {
+					stat.size = static_cast<ulong>(stdfs::file_size(path));
+				} catch(const stdfs::filesystem_error &e) {
 					(void)e;
 					stat.size = 0;
 				};
-			} catch(const std::filesystem::filesystem_error &e) {
+			} catch(const stdfs::filesystem_error &e) {
 				err = e.what();
 			};
 
@@ -372,6 +374,105 @@ namespace Ox {
 			(void)fs.open(p, mode, err);
 
 			return fs;
+		};
+
+		Directory::~Directory(void) {
+			close();
+		};
+
+		int Directory::open(const char *p, Error &err) {
+			close();
+			
+			using namespace std::filesystem;
+
+			directory_iterator *ip = inhale<directory_iterator>(err);
+			if(ip == nullptr)
+				return -1;
+
+			new (ip) directory_iterator(p);
+			implptr = ip;
+
+			end = false;
+
+			return 0;
+		};
+
+		bool Directory::is_open(void) {
+			using namespace std::filesystem;
+			directory_iterator *ip = (directory_iterator *)implptr;
+
+			return ip != nullptr;
+		};
+
+		void Directory::close(void) {
+			using namespace std::filesystem;
+			directory_iterator *ip = (directory_iterator *)implptr;
+
+			if(ip != nullptr) {
+				ip->~directory_iterator();
+				exhale(ip);
+			}
+
+			implptr = nullptr;
+		};
+
+		String Directory::current(Error &err) {
+			String s;
+
+			if(err != nullptr)
+				return s;
+			if(end)
+				return s;
+
+			using namespace std::filesystem;
+			directory_iterator *ip = (directory_iterator *)implptr;
+			directory_iterator &di = *ip;
+	
+			if(ip == nullptr) {
+				err = "Unitialized FileSystem::Directory implementation";
+				return s;
+			}
+
+			path p = di->path();
+			s.from(p.c_str(), err);
+
+			return s;
+		};
+
+		String Directory::next(Error &err) {
+			String s = current(err);
+			if(err != nullptr)
+				return s;
+
+			using namespace std::filesystem;
+			directory_iterator *ip = (directory_iterator *)implptr;
+			directory_iterator &di = *ip;
+	
+			if(ip == nullptr) {
+				err = "Unitialized FileSystem::Directory implementation";
+				return s;
+			}
+
+			try {
+				std::error_code ec;
+				di.increment(ec);
+			} catch(const filesystem_error &e) {
+				end = true;
+				err = e.what();
+			};
+
+			if(di == directory_iterator{})
+				end = true;
+
+			return s;
+		};
+
+		Directory opendir(const char *p, Error &err) {
+			Directory dir;
+
+			(void)dir.open(p, err);
+
+			return dir;
 		};
 	};
 };
