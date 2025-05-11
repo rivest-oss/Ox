@@ -33,7 +33,7 @@ namespace Ox {
 
 			std::filesystem::path path = std::filesystem::absolute(p);
 
-			str.from(path.c_str(), err);
+			str.from_c(path.c_str(), err);
 			return str;
 		};
 
@@ -188,7 +188,7 @@ namespace Ox {
 
 			try {
 				std::filesystem::path path = std::filesystem::current_path();
-				str.from(path.c_str(), err);
+				str.from_c(path.c_str(), err);
 			} catch(const std::filesystem::filesystem_error &e) {
 				err = e.what();
 			};
@@ -257,7 +257,7 @@ namespace Ox {
 
 			try {
 				std::filesystem::path path = std::filesystem::temp_directory_path();
-				str.from(path.c_str(), err);
+				str.from_c(path.c_str(), err);
 			} catch(const std::filesystem::filesystem_error &e) {
 				err = e.what();
 			};
@@ -434,7 +434,7 @@ namespace Ox {
 			}
 
 			path p = di->path();
-			s.from(p.c_str(), err);
+			s.from_c(p.c_str(), err);
 
 			return s;
 		};

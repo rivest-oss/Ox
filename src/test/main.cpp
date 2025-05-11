@@ -115,6 +115,8 @@ void test_file_read(void) {
 
 	ENFORCE(err == nullptr, "Couldn't open the file: %s", err.c_str());
 
+	ENFORCE(fs.eof(err) == false, "Failed end-of-file check: %s", err.c_str());
+
 	char buff[15];
 
 	ENFORCE(fs.read((Ox::u8 *)buff, 15, err) == 15, "Couldn't read the file: %s", err.c_str());

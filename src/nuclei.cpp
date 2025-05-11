@@ -57,7 +57,7 @@ namespace Ox {
 		src = nullptr;
 	};
 
-	int Error::fromf(const char *format, ...) {
+	int Error::from_fmt(const char *format, ...) {
 		if(src != nullptr)
 			return 1;
 
@@ -89,7 +89,7 @@ namespace Ox {
 		return 0;
 	};
 
-	int Error::fromc(const char *str) {
+	int Error::from_c(const char *str) {
 		if(src != nullptr)
 			return 1;
 		

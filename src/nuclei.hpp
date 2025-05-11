@@ -137,14 +137,14 @@ namespace Ox {
 			};
 
 			// From "format".
-			int fromf(const char *format, ...);
+			int from_fmt(const char *format, ...);
 
 			// From constant.
-			int fromc(const char *str);
+			int from_c(const char *str);
 
 			Error &operator=(const char *str) {
 				clear();
-				fromc(str);
+				from_c(str);
 
 				return *this;
 			};

@@ -17,6 +17,10 @@
 
 #include "nuclei.hpp"
 #include "string.hpp"
+#include <cstring>
+#include <cerrno>
+#include <cstdarg>
+#include <cstdio>
 
 namespace Ox {
 	ulong strlen(const char *str) {
@@ -30,7 +34,47 @@ namespace Ox {
 		return i;
 	};
 
-	int String::from(const char *source, Error &err) {
+	int String::from_fmt(Error &err, const char *format, ...) {
+		if(err != nullptr)
+			return -1;
+
+		std::va_list args;
+
+		va_start(args, format);
+		int length = std::vsnprintf(nullptr, 0, format, args);
+		va_end(args);
+
+		if(length < 0) {
+			err.from_fmt("Couldn't determine the necessary buffer length: %s", std::strerror(errno));
+			err.from_c("Couldn't determine the necessary buffer length");
+			return -1;
+		}
+
+		char *s = inhale<char>(length + 1, err);
+		if(s == nullptr)
+			return -1;
+
+		va_start(args, format);
+		int c = std::vsnprintf(s, length, format, args);
+		va_end(args);
+
+		if(c < 0) {
+			exhale(s);
+			err.from_fmt("Couldn't format the string: %s", std::strerror(errno));
+			err.from_c("Couldn't format the string");
+			return -1;
+		}
+
+		s[length] = '\0';
+
+		if(implptr != nullptr)
+			exhale(implptr);
+
+		implptr = s;
+		return 0;
+	};
+
+	int String::from_c(const char *source, Error &err) {
 		if(err != nullptr)
 			return -1;
 
@@ -73,12 +117,12 @@ namespace Ox {
 
 		char *left = (char *)implptr;
 		if(left == nullptr) {
-			str.from(right, err);
+			str.from_c(right, err);
 			return str;
 		}
 
 		if(right == nullptr) {
-			str.from(left, err);
+			str.from_c(left, err);
 			return str;
 		}
 
@@ -95,7 +139,7 @@ namespace Ox {
 		for(; *right != '\0'; i++)
 			b[i] = *right++;
 
-		str.from(b, err);
+		str.from_c(b, err);
 		exhale(b);
 		
 		return str;
