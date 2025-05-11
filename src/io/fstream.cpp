@@ -66,7 +66,7 @@ namespace Ox {
 		f->clear();
 		f->close();
 		f->open(path, __ox_impl_filestream_openmode(mode));
-		if(f->fail()) {
+		if(f->fail() && errno != 0) {
 			err = std::strerror(errno);
 			close();
 			return -1;
@@ -156,6 +156,9 @@ namespace Ox {
 
 		(void)f->ignore(n);
 
+		if(f->eof())
+			return f->gcount();
+
 		if(f->fail() && errno != 0) {
 			err = std::strerror(errno);
 			return -1;
@@ -175,6 +178,9 @@ namespace Ox {
 		}
 
 		(void)f->ignore(n, delimitator);
+
+		if(f->eof())
+			return f->gcount();
 
 		if(f->fail() && errno != 0) {
 			err = std::strerror(errno);
@@ -201,7 +207,10 @@ namespace Ox {
 
 		(void)f->read((char *)s, n);
 
-		if(f->fail()) {
+		if(f->eof())
+			return f->gcount();
+
+		if(f->fail() && errno != 0) {
 			err = std::strerror(errno);
 			return -1;
 		}
@@ -220,6 +229,7 @@ namespace Ox {
 			return -1;
 		}
 
+		(void)f->peek();
 		return f->eof();
 	};
 
@@ -240,6 +250,9 @@ namespace Ox {
 		}
 
 		(void)f->write((char *)s, n);
+
+		if(f->eof())
+			return f->gcount();
 
 		if(f->fail() && errno != 0) {
 			err = std::strerror(errno);

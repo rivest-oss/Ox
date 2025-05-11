@@ -119,11 +119,12 @@ void test_file_read(void) {
 
 	ENFORCE(fs.read((Ox::u8 *)buff, 15, err) == 15, "Couldn't read the file: %s", err.c_str());
 
-	fs.close();
-
 	for(int i = 0; i < 14; i++)
 		ENFORCE(buff[i] == text[i], "Failed comparison %i (read = %i, actual = %i)", text[i], buff[i]);
 
+	ENFORCE(fs.eof(err) == true, "Failed end-of-file check: %s", err.c_str());
+
+	fs.close();
 	OK();
 };
 
