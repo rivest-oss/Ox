@@ -58,6 +58,8 @@ namespace Ox {
 
 	// Implementation of 'alloc'.
 	void *__ox_alloc(ulong n, const char **err);
+	// Implementation of 'realloc'.
+	void *__ox_realloc(void *src, ulong n, const char **err);
 
 	typedef enum {
 		in = 1 << 0,
@@ -175,6 +177,20 @@ namespace Ox {
 	template<typename T>
 	T *inhale(Error &err) {
 		return inhale<T>(1, err);
+	};
+
+	// Reallocates memory.
+	template<typename T>
+	T *respire(T *source, ulong n, Error &err) {
+		if(err != nullptr)
+			return nullptr;
+
+		const char *e = nullptr;
+		T *p = (T *)__ox_realloc(source, n * sizeof(T), &e);
+		if(p == nullptr)
+			err = e;
+
+		return p;
 	};
 	
 	// Frees previously allocated memory.

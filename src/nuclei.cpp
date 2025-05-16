@@ -42,6 +42,19 @@ namespace Ox {
 		
 		return p;
 	};
+	
+	void *__ox_realloc(void *src, ulong n, const char **err) {
+		if(err == nullptr)
+			return nullptr;
+		if(*err != nullptr)
+			return nullptr;
+		
+		void *p = std::realloc(src, n);
+		if(p == nullptr)
+			*err = "Couldn't allocate enough memory";
+		
+		return p;
+	};
 
 	void exhale(void *p) {
 		if(p == nullptr)
