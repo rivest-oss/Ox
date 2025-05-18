@@ -16,7 +16,7 @@
 **/
 
 #pragma once
-#include "nuclei.hpp"
+#include "../nuclei.hpp"
 
 namespace Ox {
 	ulong strlen(const char *str);

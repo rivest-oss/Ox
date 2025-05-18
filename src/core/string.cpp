@@ -15,7 +15,7 @@
 ** along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#include "nuclei.hpp"
+#include "../nuclei.hpp"
 #include "string.hpp"
 #include <cstring>
 #include <cerrno>
