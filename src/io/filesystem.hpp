@@ -17,7 +17,7 @@
 
 #pragma once
 #include "../nuclei.hpp"
-#include "../string.hpp"
+#include "../core/string.hpp"
 #include "fstream.hpp"
 
 namespace Ox {
