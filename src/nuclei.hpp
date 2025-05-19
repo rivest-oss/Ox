@@ -18,18 +18,7 @@
 #pragma once
 #include <cstdint>
 #include <cstdlib>
-
-#if(defined(_WIN16) || defined(_WIN32) || defined(_WIN64)) && !defined(__WINDOWS__)
-	#define __WINDOWS__
-#endif
-
-#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-	#define OX_ENDIANNESS_LE // 321
-#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-	#define OX_ENDIANNESS_BE // 123
-#else
-	#error "Unsupported endianness"
-#endif
+#include "macros.hpp"
 
 namespace Ox {
 	typedef uint8_t u8;
@@ -48,12 +37,20 @@ namespace Ox {
 	typedef unsigned int uint;
 	typedef unsigned long ulong;
 
+	#if defined(INTPTR_MAX)
+		#define OX_POINTER_T intptr_t
+	#else
+		#define OX_POINTER_T void *
+	#endif
+	
+	typedef OX_POINTER_T pointer_t;
+
 	void __ox_assert__(const char *file, int line, const char *comment);
 
-	#ifndef NDEBUG
-		#define xassert(x,y) if((x) == false) __ox_assert__(__FILE__, __LINE__, y);
+	#ifdef OX_DEBUG
+		#define ox_assert(x,y) if((x) == false) __ox_assert__(__FILE__, __LINE__, y);
 	#else
-		#define xassert(x,y) (void)0;
+		#define ox_assert(x,y) (void)0;
 	#endif
 
 	// Implementation of 'alloc'.
