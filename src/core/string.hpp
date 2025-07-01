@@ -27,6 +27,12 @@ namespace Ox {
 			void *implptr = nullptr;
 
 		public:
+			Ox::Error err;
+
+			String(void);
+			String(const char *s);
+			String(char *s);
+
 			int from_c(const char *source, Error &err);
 			int from_fmt(Error &err, const char *format, ...);
 
@@ -36,6 +42,12 @@ namespace Ox {
 			String operator+(const char *right);
 			String operator+(String &right);
 
+			String operator=(const char *s);
+			String operator=(char *s);
+
 			~String(void);
+
+			operator const char *(void) { return c_str(); };
+			operator char *(void) { return (char *)c_str(); };
 	};
 };

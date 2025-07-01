@@ -34,6 +34,16 @@ namespace Ox {
 		return i;
 	};
 
+	String::String(void) {};
+
+	String::String(const char *s) {
+		from_c(s, err);
+	};
+
+	String::String(char *s) {
+		from_c(s, err);
+	};
+
 	int String::from_fmt(Error &err, const char *format, ...) {
 		if(err != nullptr)
 			return -1;
@@ -110,7 +120,6 @@ namespace Ox {
 
 	String String::concat(const char *right) {
 		String str;
-		Error err;
 
 		if(right == nullptr)
 			return str;
@@ -151,6 +160,16 @@ namespace Ox {
 
 	String String::operator+(String &right) {
 		return concat(right.c_str());
+	};
+
+	String String::operator=(const char *s) {
+		from_c(s, err);
+		return *this;
+	};
+
+	String String::operator=(char *s) {
+		from_c(s, err);
+		return *this;
 	};
 
 	String::~String(void) {
