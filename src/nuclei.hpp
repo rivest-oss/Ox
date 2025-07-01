@@ -45,10 +45,10 @@ namespace Ox {
 	
 	typedef OX_POINTER_T pointer_t;
 
-	void __ox_assert__(const char *file, int line, const char *comment);
+	void __ox_assert__(const char *file, int line, const char *fn, const char *comment);
 
 	#ifdef OX_DEBUG
-		#define ox_assert(x,y) if((x) == false) __ox_assert__(__FILE__, __LINE__, y);
+		#define ox_assert(x,y) if((x) == false) Ox::__ox_assert__(__FILE__, __LINE__, __PRETTY_FUNCTION__, y);
 	#else
 		#define ox_assert(x,y) (void)0;
 	#endif

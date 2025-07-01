@@ -19,13 +19,77 @@
 #include <cstdio>
 #include <cstdarg>
 
+#if __has_include(<execinfo.h>) && __has_include(<cxxabi.h>)
+	// stacktrace.h (c) 2008, Timo Bingmann from http://idlebox.net/
+	// published under the WTFPL v2.0
+	#include <execinfo.h>
+	#include <cxxabi.h>
+	#define OX_DEBUG_HASINCL_LINUXTRACE
+#endif
+
 namespace Ox {
-	void __ox_assert__(const char *file, int line, const char *comment) {
+	void __ox_assert__(const char *file, int line, const char *fn, const char *comment) {
+		// Always print to terminal.
 		if(comment == nullptr) {
-			fprintf(stderr, "Assert at %s#%i has failed.\n", file, line);
+			std::fprintf(stderr, "%s(\x1b[1m%i\x1b[0m): \x1b[1m\x1b[5m\x1b[31mAssertion failed\x1b[0m in function \x1b[4m%s\x1b[0m.\r\n", file, line, fn);
 		} else {
-			fprintf(stderr, "Assert at %s#%i has failed: %s.\n", file, line, comment);
+			std::fprintf(stderr, "%s(\x1b[1m%i\x1b[0m): \x1b[1m\x1b[5m\x1b[31mAssertion failed\x1b[0m in function \x1b[4m%s\x1b[0m: \x1b[3m%s\r\n", file, line, fn, comment);
 		}
+
+		#ifdef OX_DEBUG_HASINCL_LINUXTRACE
+			// stacktrace.h (c) 2008, Timo Bingmann from http://idlebox.net/
+			// published under the WTFPL v2.0
+
+			void *addrlist[16+1];
+			int addrlist_len = backtrace(addrlist, 16+1);
+
+			if(addrlist_len == 0)
+				return;
+
+			char **symlist = backtrace_symbols(addrlist, addrlist_len);
+
+			size_t fn_name_len = 256;
+			char *fn_name = (char *)calloc(fn_name_len, sizeof(char));
+
+			for(int i = 1; i < addrlist_len && fn_name != nullptr; i++) {
+				char *begin_name = nullptr, *begin_off = nullptr, *end_off = nullptr;
+				for(char *p = symlist[i]; *p; ++p) {
+					if(*p == '(')
+						begin_name = p;
+					else if(*p == '*')
+						begin_off = p;
+					else if(*p == ')' && begin_off) {
+						end_off = p;
+						break;
+					}
+				};
+
+				if(begin_name && begin_off && end_off) {
+					*begin_name++ = '\0';
+					*begin_off++ = '\0';
+					*end_off = '\0';
+					// mangled name is now in [begin_name, begin_off] and caller
+					// offset in [begin_off, end_offx], now apply
+					// __cxa_demange():
+					int status = -1;
+					char *ret = abi::__cxa_demangle(begin_name, fn_name, &fn_name_len, &status);
+
+					if(status == 0) {
+						fn_name = ret;
+						std::fprintf(stderr, "\x1b[2m\t%s: %s+%s\x1b[0m\n", symlist[i], fn_name, begin_off);
+					} else {
+						// demangling failed, then output function name as a C
+						// function with no arguments.
+						std::fprintf(stderr, "\x1b[2m\t%s (mangled): %s+%s\x1b[0m\n", symlist[i], begin_name, begin_off);
+					}
+				} else {
+					std::fprintf(stderr, "\x1b[2m\t%s\x1b[0m\n", symlist[i]);
+				}
+			};
+
+			free(fn_name);
+			free(symlist);
+		#endif
 
 		std::exit(1);
 	};
