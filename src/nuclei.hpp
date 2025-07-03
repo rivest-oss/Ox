@@ -47,12 +47,13 @@ namespace Ox {
 
 	void __ox_assert__(const char *file, int line, const char *fn, const char *comment);
 
-	#ifdef OX_DEBUG
-		#define ox_assert(x,y) if((x) == false) Ox::__ox_assert__(__FILE__, __LINE__, __PRETTY_FUNCTION__, y);
+	#if defined(OX_DEBUG) || !defined(NDEBUG)
+		#define ox_assert(x,y) \
+			Ox::__ox_assert__(__FILE__, __LINE__, __PRETTY_FUNCTION__, y);
 	#else
 		#define ox_assert(x,y) (void)0;
 	#endif
-
+	
 	// Implementation of 'alloc'.
 	void *__ox_alloc(ulong n, const char **err);
 	// Implementation of 'realloc'.
