@@ -305,16 +305,16 @@ namespace Ox {
 
 				// [FIXME] Incorrect file type (unknown).
 				switch(s.type()) {
-					case stdfs::file_type::none: stat.type = file_type::none;
-					case stdfs::file_type::not_found: stat.type = file_type::not_found;
-					case stdfs::file_type::regular: stat.type = file_type::regular;
-					case stdfs::file_type::directory: stat.type = file_type::directory;
-					case stdfs::file_type::symlink: stat.type = file_type::symlink;
-					case stdfs::file_type::block: stat.type = file_type::block;
-					case stdfs::file_type::character: stat.type = file_type::character;
-					case stdfs::file_type::fifo: stat.type = file_type::fifo;
-					case stdfs::file_type::socket: stat.type = file_type::socket;
-					case stdfs::file_type::unknown: stat.type = file_type::unknown;
+					case stdfs::file_type::none: stat.type = file_type::none; break;
+					case stdfs::file_type::not_found: stat.type = file_type::not_found; break;
+					case stdfs::file_type::regular: stat.type = file_type::regular; break;
+					case stdfs::file_type::directory: stat.type = file_type::directory; break;
+					case stdfs::file_type::symlink: stat.type = file_type::symlink; break;
+					case stdfs::file_type::block: stat.type = file_type::block; break;
+					case stdfs::file_type::character: stat.type = file_type::character; break;
+					case stdfs::file_type::fifo: stat.type = file_type::fifo; break;
+					case stdfs::file_type::socket: stat.type = file_type::socket; break;
+					case stdfs::file_type::unknown: stat.type = file_type::unknown; break;
 				};
 
 				if((p & stdfs::perms::owner_read) != stdfs::perms::none) perms |= file_perms::owner_read;
