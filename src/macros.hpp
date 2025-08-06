@@ -46,3 +46,9 @@
 #if !defined(NDEBUG)
 	#define OX_DEBUG 1
 #endif
+
+#ifdef __has_include
+	#define ox_has_include __has_include
+#else
+	#error "__has_include is required"
+#endif

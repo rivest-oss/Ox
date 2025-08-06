@@ -19,7 +19,7 @@
 #include <cstdio>
 #include <cstdarg>
 
-#if __has_include(<execinfo.h>) && __has_include(<cxxabi.h>)
+#if ox_has_include(<execinfo.h>) && ox_has_include(<cxxabi.h>)
 	// stacktrace.h (c) 2008, Timo Bingmann from http://idlebox.net/
 	// published under the WTFPL v2.0
 	#include <execinfo.h>
