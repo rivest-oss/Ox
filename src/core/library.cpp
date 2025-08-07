@@ -136,8 +136,6 @@ namespace Ox {
 		#else
 			#error "Well, this is awkward..."
 		#endif
-		
-		// [TODO]
 	};
 
 	void *DynamicLibrary::cast_symbol(const char *name, Ox::Error &err) {
