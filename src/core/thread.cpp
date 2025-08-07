@@ -31,6 +31,8 @@
 	#include <new>
 #elif defined(OX_USE_THREAD_PTHREAD)
 	#include <pthread.h>
+#else
+	#error "Well, this is awkward..."
 #endif
 
 namespace Ox {
@@ -49,6 +51,8 @@ namespace Ox {
 
 			pthread_cancel(*t);
 			handle = nullptr;
+		#else
+			#error "Well, this is awkward..."
 		#endif
 	};
 
@@ -99,6 +103,8 @@ namespace Ox {
 			pthread_detach(*(pthread_t *)handle);
 
 			return 0;
+		#else
+			#error "Well, this is awkward..."
 		#endif
 	};
 
@@ -118,6 +124,8 @@ namespace Ox {
 			pthread_join(*t, nullptr);
 			Ox::exhale(t);
 			handle = nullptr;
+		#else
+			#error "Well, this is awkward..."
 		#endif
 	};
 
@@ -128,6 +136,8 @@ namespace Ox {
 			return (Ox::pointer_t)id_hash;
 		#elif OX_USE_THREAD_PTHREAD
 			return pthread_self();
+		#else
+			#error "Well, this is awkward..."
 		#endif
 	};
 
@@ -136,6 +146,8 @@ namespace Ox {
 			return std::thread::hardware_concurrency();
 		#elif OX_USE_THREAD_PTHREAD
 			return 1;	// [TODO] : Well, this sucks.
+		#else
+			#error "Well, this is awkward..."
 		#endif
 	};
 
@@ -153,6 +165,8 @@ namespace Ox {
 			new (m) std::mutex();
 		#elif OX_USE_THREAD_PTHREAD
 			pthread_mutex_init((pthread_mutex_t *)handle, nullptr);
+		#else
+			#error "Well, this is awkward..."
 		#endif
 	};
 
@@ -167,6 +181,8 @@ namespace Ox {
 			pthread_mutex_t *m = (pthread_mutex_t *)handle;
 			if(m != nullptr)
 				pthread_mutex_destroy(m);
+		#else
+			#error "Well, this is awkward..."
 		#endif
 	};
 
@@ -202,6 +218,8 @@ namespace Ox {
 				locked = true;
 
 			return locked;
+		#else
+			#error "Well, this is awkward..."
 		#endif
 	};
 
@@ -240,6 +258,8 @@ namespace Ox {
 
 			err = "pthread error";	// [TODO] : Improve error message.
 			return -1;
+		#else
+			#error "Well, this is awkward..."
 		#endif
 	};
 
@@ -275,6 +295,8 @@ namespace Ox {
 			owner = 0;
 
 			return 0;
+		#else
+			#error "Well, this is awkward..."
 		#endif
 	};
 };
