@@ -84,7 +84,7 @@ namespace Ox {
 
 			long push_end(T item, Ox::Error &err) {
 				if(err != nullptr)
-					return handle_invalid;
+					return -1;
 
 				if(handle_size >= handle_capacity)
 					if(resize(suggest_grow(), err) < 0)
