@@ -26,10 +26,10 @@
 #if(defined(__linux__))
 	#define OX_OS_LINUX 1
 #elif defined(_WIN32) || defined(_WIN64) || defined(__WIN32__) || defined(__TOS_WIN__) || defined(__WINDOWS__)
-	#define OX_OS_WINDOWS 32
-
 	#if defined(_WIN64)
 		#define OX_OS_WINDOWS 64
+	#else
+		#define OX_OS_WINDOWS 32
 	#endif
 #else
 	#define OX_OS_UNKNOWN 1
