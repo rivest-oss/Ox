@@ -20,12 +20,16 @@
 
 #if !defined(OX_DISABLE_DLFCN) && ox_has_include(<dlfcn.h>)
 	#define OX_USE_DLIB_DLFCN
+#elif !defined(OX_DISABLE_WINDOWS_H) && defined(OX_OS_WINDOWS) && ox_has_include(<windows.h>)
+	#define OX_USE_DLIB_WINDOWS_H
 #else
-	#error "No <dlfcn.h> support"
+	#error "Well, this is awkward..."
 #endif
 
 #ifdef OX_USE_DLIB_DLFCN
 	#include <dlfcn.h>
+#elif defined(OX_USE_DLIB_WINDOWS_H)
+	#include <windows.h>
 #endif
 
 namespace Ox {
@@ -37,11 +41,7 @@ namespace Ox {
 		if(handle == nullptr)
 			return false;
 
-		#ifdef OX_USE_DLIB_DLFCN
-			return true;
-		#else
-			#error "Well, this is awkward..."
-		#endif
+		return true;
 	};
 
 	int DynamicLibrary::open(const char *p, Ox::Error &err) {
@@ -70,6 +70,14 @@ namespace Ox {
 			}
 
 			return 0;
+		#elif defined(OX_USE_DLIB_WINDOWS_H)
+			handle = LoadLibrary(TEXT(p));
+			if(handle == nullptr) {
+				err = "Unknown Dynamic Library error";
+				return -1;
+			}
+
+			return 0;
 		#else
 			#error "Well, this is awkward..."
 		#endif
@@ -79,6 +87,9 @@ namespace Ox {
 		#ifdef OX_USE_DLIB_DLFCN
 			if(is_open())
 				(void)dlclose(handle);
+		#elif defined(OX_USE_DLIB_WINDOWS_H)
+			if(is_open())
+				(void)FreeLibrary((HMODULE)handle);
 		#else
 			#error "Well, this is awkward..."
 		#endif
@@ -94,11 +105,6 @@ namespace Ox {
 			err = "Invalid path";
 			return -1;
 		}
-
-		#ifdef OX_USE_DLIB_DLFCN
-		#else
-			#error "Well, this is awkward..."
-		#endif
 
 		Ox::Error e;
 		void *addr = cast_symbol<void *>(name, e);
@@ -129,6 +135,14 @@ namespace Ox {
 
 				err.from_fmt("%s", s);
 				err.from_c("Non-allocated Dynamic Library error");
+				return nullptr;
+			}
+
+			return reinterpret_cast<T>(addr);
+		#elif defined(OX_USE_DLIB_WINDOWS_H)
+			void *addr = (void *)GetProcAddress((HMODULE)handle, TEXT("name"));
+			if(addr == nullptr) {
+				err = "Unknown Dynamic Library error";
 				return nullptr;
 			}
 
