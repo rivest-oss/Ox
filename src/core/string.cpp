@@ -113,6 +113,144 @@ namespace Ox {
 		return 0;
 	};
 
+	Ox::ulong __string_strlen_wchar2utf8(const wchar_t *s) {
+		Ox::ulong n = 0;
+
+		while(*s != '\0') {
+			if((*s & 0xf800) > 0) n += 3;
+			else if((*s & 0x780) > 0) n += 2;
+			else n++;
+
+			s++;
+		};
+
+		return n;
+	};
+
+	void __string_strconv_wchar2utf8(const wchar_t *src, char *dst, ulong max_len) {
+		u32 codepoint;
+		ulong dst_i = 0;
+
+		if(*src == 0xfeff) src++;
+		ox_assert(*src != 0xfffe, "[TODO] : Add byte-swapping support");	// [TODO] : Add byte-swapping support
+
+		while(dst_i < max_len) {
+			codepoint = *src;
+			if(codepoint == 0)
+				break;
+
+			src++;
+
+			if(codepoint >= 0xd800 && codepoint <= 0xdfff) {
+				codepoint = (codepoint & 0xff) << 10;
+
+				ox_assert(*src >= 0xd800 && *src <= 0xdfff, "Invalid UTF-16 codepoint");
+
+				codepoint |= (char)*src;
+
+				src++;
+			}
+
+			if(codepoint < 0x80) {
+				dst[dst_i] = (char)codepoint;
+				dst_i++;
+				continue;
+			}
+
+			if(codepoint < 0x800) {
+				dst[dst_i] = 0b110'00000 | (char)(codepoint >> 6);
+				dst_i++;
+
+				if(dst_i >= max_len)
+					break;
+
+				dst[dst_i] = 0b1000'0000 | (char)(codepoint & 0b111111);
+				dst_i++;
+
+				continue;
+			}
+
+			if(codepoint < 0x10000) {
+				dst[dst_i] = 0b1110'0000 | (char)(codepoint >> 12);
+				dst_i++;
+
+				if(dst_i >= max_len)
+					break;
+
+				dst[dst_i] = 0b1000'0000 | (char)(codepoint >> 6);
+				dst_i++;
+
+				if(dst_i >= max_len)
+					break;
+
+				dst[dst_i] = 0b1000'0000 | (char)(codepoint >> 6);
+				dst_i++;
+
+				continue;
+			}
+
+			if(codepoint < 0x200000) {
+				dst[dst_i] = 0b1111'0000 | (char)(codepoint >> 18);
+				dst_i++;
+
+				if(dst_i >= max_len)
+					break;
+
+				dst[dst_i] = 0b1000'0000 | (char)(codepoint >> 12);
+				dst_i++;
+
+				if(dst_i >= max_len)
+					break;
+
+				dst[dst_i] = 0b1000'0000 | (char)(codepoint >> 6);
+				dst_i++;
+
+				if(dst_i >= max_len)
+					break;
+				
+				dst[dst_i] = 0b1000'0000 | (char)codepoint;
+				dst_i++;
+	
+				continue;
+			}
+
+			ox_assert(false, "huh? out of bonds?");
+		};
+
+		dst[dst_i] = '\0';
+	};
+
+	int String::from_c(const wchar_t *source, Error &err) {
+		if(err != nullptr)
+			return -1;
+		
+		if(source == nullptr) {
+			err = "'source' is NULL";
+			return -1;
+		}
+
+		ox_assert(sizeof(wchar_t) == 2, "Unexpected wchar_t size");
+		
+		char *s = (char *)implptr;
+
+		if(s != nullptr) {
+			exhale(s);
+			implptr = nullptr;
+		}
+
+		ulong len = __string_strlen_wchar2utf8(source);
+
+		s = inhale<char>(len + 1, err);
+		if(s == nullptr)
+			return -1;
+
+		__string_strconv_wchar2utf8(source, s, len);
+
+		implptr = s;
+
+		return 0;
+	};
+
 	const char *String::c_str(void) {
 		char *s = (char *)implptr;
 		return s;

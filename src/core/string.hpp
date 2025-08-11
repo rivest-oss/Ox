@@ -34,6 +34,7 @@ namespace Ox {
 			String(char *s);
 
 			int from_c(const char *source, Error &err);
+			int from_c(const wchar_t *source, Error &err);	// for Windows...
 			int from_fmt(Error &err, const char *format, ...);
 
 			const char *c_str(void);
