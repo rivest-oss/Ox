@@ -41,3 +41,6 @@ tmp/
 .clang-format
 *.swp
 .vscode/
+
+.cache/
+cache/
