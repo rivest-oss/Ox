@@ -23,11 +23,11 @@ namespace Ox {
 		public:
 			virtual ulong tellg(void) = 0;
 			virtual void seekg(ulong pos) = 0;
-			virtual void seekg(i64 off, seekdir dir) = 0;
+			virtual void seekg(long off, seekdir dir) = 0;
 			
 			virtual ulong tellp(void) = 0;
 			virtual void seekp(ulong pos) = 0;
-			virtual void seekp(i64 off, seekdir dir) = 0;
+			virtual void seekp(long off, seekdir dir) = 0;
 			
 			virtual long ignore(ulong n, Error &err) = 0;
 			virtual long ignore(ulong n, char delimitator, Error &err) = 0;

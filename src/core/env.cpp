@@ -59,6 +59,7 @@
 		extern "C" int setenv(const char *, const char *, bool);
 		extern "C" int unsetenv(const char *);
 		extern "C" int clearenv(void);
+		#define OX_DISABLE_ENV 1
 	#endif
 #endif
 
@@ -91,6 +92,7 @@ namespace Ox {
 			}
 
 			#ifdef OX_DISABLE_ENV
+				(void)name; (void)value; (void)overwrite;
 				err = "Flag OX_DISABLE_ENV is set";
 				return -1;
 			#else
@@ -152,9 +154,7 @@ namespace Ox {
 		};
 		
 		void unset_everything(void) {
-			#ifdef OX_DISABLE_ENV
-				err = "Flag OX_DISABLE_ENV is set";
-			#else
+			#ifndef OX_DISABLE_ENV
 				using namespace std;
 				clearenv();
 			#endif
