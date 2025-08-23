@@ -16,30 +16,37 @@
 **/
 
 #include "fstream.hpp"
-#include <fstream>
-#include <cerrno>
-#include <cstring>
+
+#ifdef OX_DISABLE_FSTREAM
+	#warning "Flag OX_DISABLE_FSTREAM is set"
+#endif
+
+#ifndef OX_DISABLE_FSTREAM
+	#include <fstream>
+	#include <cerrno>
+	#include <cstring>
+#endif
 
 namespace Ox {
-	std::ios::openmode __ox_impl_filestream_openmode(openmode mode) {
-		std::ios::openmode smode = std::ios::binary;
+	#ifndef OX_DISABLE_FSTREAM
+		std::ios::openmode __ox_impl_filestream_openmode(openmode mode) {
+			std::ios::openmode smode = std::ios::binary;
 
-		if(mode & Ox::openmode::in) smode |= std::ios::in;
-		if(mode & Ox::openmode::out) smode |= std::ios::out;
+			if(mode & Ox::openmode::in) smode |= std::ios::in;
+			if(mode & Ox::openmode::out) smode |= std::ios::out;
 
-		return smode;
-	};
+			return smode;
+		};
 
-	std::ios::seekdir __ox_impl_filestream_seekdir(seekdir dir) {
-		if(dir == Ox::seekdir::cur) return std::ios::cur;
-		if(dir == Ox::seekdir::end) return std::ios::end;
+		std::ios::seekdir __ox_impl_filestream_seekdir(seekdir dir) {
+			if(dir == Ox::seekdir::cur) return std::ios::cur;
+			if(dir == Ox::seekdir::end) return std::ios::end;
 
-		return std::ios::beg;
-	};
+			return std::ios::beg;
+		};
+	#endif
 
 	int FileStream::open(const char *path, openmode mode, Error &err) {
-		std::fstream *f = (std::fstream *)__ox_implptr;
-
 		if(err != nullptr)
 			return -1;
 
@@ -47,218 +54,290 @@ namespace Ox {
 			err = "'path' is NULL";
 			return -1;
 		}
-
-		if(f != nullptr && is_open()) {
-			err = "File stream is already open";
+		
+		#ifdef OX_DISABLE_FSTREAM
+			(void)mode;
+			err = "Flag OX_DISABLE_FSTREAM is set";
 			return -1;
-		}
+		#else
+			std::fstream *f = (std::fstream *)__ox_implptr;
 
-		if(f == nullptr) {
-			f = inhale<std::fstream>(err);
-			if(f == nullptr)
+			if(f != nullptr && is_open()) {
+				err = "File stream is already open";
 				return -1;
+			}
 
-			new (f) std::fstream();
-		}
+			if(f == nullptr) {
+				f = inhale<std::fstream>(err);
+				if(f == nullptr)
+					return -1;
 
-		__ox_implptr = f;
+				new (f) std::fstream();
+			}
 
-		f->clear();
-		f->close();
-		f->open(path, __ox_impl_filestream_openmode(mode));
-		if(f->fail() && errno != 0) {
-			err = std::strerror(errno);
-			close();
-			return -1;
-		}
+			__ox_implptr = f;
 
-		return 0;
+			f->clear();
+			f->close();
+			f->open(path, __ox_impl_filestream_openmode(mode));
+			if(f->fail() && errno != 0) {
+				err = std::strerror(errno);
+				close();
+				return -1;
+			}
+
+			return 0;
+		#endif
 	};
 
 	bool FileStream::is_open(void) {
-		std::fstream *f = (std::fstream *)__ox_implptr;
-		if(f == nullptr)
+		#ifdef OX_DISABLE_FSTREAM
 			return false;
-		
-		return f->is_open();
+		#else
+			std::fstream *f = (std::fstream *)__ox_implptr;
+			if(f == nullptr)
+				return false;
+			
+			return f->is_open();
+		#endif
 	};
 
 	void FileStream::close(void) {
-		std::fstream *f = (std::fstream *)__ox_implptr;
-		if(f == nullptr)
-			return;
+		#ifndef OX_DISABLE_FSTREAM
+			std::fstream *f = (std::fstream *)__ox_implptr;
+			if(f == nullptr)
+				return;
 
-		if(is_open())
-			f->close();
+			if(is_open())
+				f->close();
 
-		f->~basic_fstream();
-		exhale(f);
-		__ox_implptr = nullptr;
+			f->~basic_fstream();
+			exhale(f);
+			__ox_implptr = nullptr;
+		#endif
 	};
 
 	ulong FileStream::tellg(void) {
-		std::fstream *f = (std::fstream *)__ox_implptr;
-		if(f == nullptr)
+		#ifdef OX_DISABLE_FSTREAM
 			return -1;
-		
-		return static_cast<ulong>(f->tellg());
+		#else
+			std::fstream *f = (std::fstream *)__ox_implptr;
+			if(f == nullptr)
+				return -1;
+			
+			return static_cast<ulong>(f->tellg());
+		#endif
 	};
 
 	void FileStream::seekg(ulong pos) {
-		std::fstream *f = (std::fstream *)__ox_implptr;
-		if(f == nullptr)
-			return;
+		#ifdef OX_DISABLE_FSTREAM
+			(void)pos;
+		#else
+			std::fstream *f = (std::fstream *)__ox_implptr;
+			if(f == nullptr)
+				return;
 
-		f->seekg(pos);
+			f->seekg(pos);
+		#endif
 	};
 
 	void FileStream::seekg(long off, seekdir dir) {
-		std::fstream *f = (std::fstream *)__ox_implptr;
-		if(f == nullptr)
-			return;
+		#ifdef OX_DISABLE_FSTREAM
+			(void)off; (void)dir;
+		#else
+			std::fstream *f = (std::fstream *)__ox_implptr;
+			if(f == nullptr)
+				return;
 
-		f->seekg(off, __ox_impl_filestream_seekdir(dir));
+			f->seekg(off, __ox_impl_filestream_seekdir(dir));
+		#endif
 	};
 
 	ulong FileStream::tellp(void) {
-		std::fstream *f = (std::fstream *)__ox_implptr;
-		if(f == nullptr)
+		#ifdef OX_DISABLE_FSTREAM
 			return -1;
-		
-		return static_cast<ulong>(f->tellp());
+		#else
+			std::fstream *f = (std::fstream *)__ox_implptr;
+			if(f == nullptr)
+				return -1;
+			
+			return static_cast<ulong>(f->tellp());
+		#endif
 	};
 
 	void FileStream::seekp(ulong pos) {
-		std::fstream *f = (std::fstream *)__ox_implptr;
-		if(f == nullptr)
-			return;
+		#ifdef OX_DISABLE_FSTREAM
+			(void)pos;
+		#else
+			std::fstream *f = (std::fstream *)__ox_implptr;
+			if(f == nullptr)
+				return;
 
-		f->seekp(pos);
+			f->seekp(pos);
+		#endif
 	};
 
 	void FileStream::seekp(long off, seekdir dir) {
-		std::fstream *f = (std::fstream *)__ox_implptr;
-		if(f == nullptr)
-			return;
+		#ifdef OX_DISABLE_FSTREAM
+			(void)off; (void)dir;
+		#else
+			std::fstream *f = (std::fstream *)__ox_implptr;
+			if(f == nullptr)
+				return;
 
-		f->seekp(off, __ox_impl_filestream_seekdir(dir));
+			f->seekp(off, __ox_impl_filestream_seekdir(dir));
+		#endif
 	};
 
 	long FileStream::ignore(ulong n, Error &err) {
-		if(err != nullptr)
-			return -1;
-
-		std::fstream *f = (std::fstream *)__ox_implptr;
-		if(f == nullptr) {
-			err = "Unitialized FileStream implementation";
+		if(err != nullptr) {
 			return -1;
 		}
+		
+		#ifdef OX_DISABLE_FSTREAM
+			(void)n;
+			err = "Flag OX_DISABLE_FSTREAM is set";
+			return -1;
+		#else
+			std::fstream *f = (std::fstream *)__ox_implptr;
+			if(f == nullptr) {
+				err = "Unitialized FileStream implementation";
+				return -1;
+			}
 
-		(void)f->ignore(n);
+			(void)f->ignore(n);
 
-		if(f->eof())
+			if(f->eof())
+				return f->gcount();
+
+			if(f->fail() && errno != 0) {
+				err = std::strerror(errno);
+				return -1;
+			}
+
 			return f->gcount();
-
-		if(f->fail() && errno != 0) {
-			err = std::strerror(errno);
-			return -1;
-		}
-
-		return f->gcount();
+		#endif
 	};
 
 	long FileStream::ignore(ulong n, char delimitator, Error &err) {
-		if(err != nullptr)
-			return -1;
-
-		std::fstream *f = (std::fstream *)__ox_implptr;
-		if(f == nullptr) {
-			err = "Unitialized FileStream implementation";
+		if(err != nullptr) {
 			return -1;
 		}
 
-		(void)f->ignore(n, delimitator);
+		#ifdef OX_DISABLE_FSTREAM
+			(void)n; (void)delimitator;
+			err = "Flag OX_DISABLE_FSTREAM is set";
+			return -1;
+		#else
+			std::fstream *f = (std::fstream *)__ox_implptr;
+			if(f == nullptr) {
+				err = "Unitialized FileStream implementation";
+				return -1;
+			}
 
-		if(f->eof())
+			(void)f->ignore(n, delimitator);
+
+			if(f->eof())
+				return f->gcount();
+
+			if(f->fail() && errno != 0) {
+				err = std::strerror(errno);
+				return -1;
+			}
+
 			return f->gcount();
-
-		if(f->fail() && errno != 0) {
-			err = std::strerror(errno);
-			return -1;
-		}
-
-		return f->gcount();
+		#endif
 	};
 
 	long FileStream::read(u8 *s, ulong n, Error &err) {
-		if(err != nullptr)
-			return -1;
-
-		std::fstream *f = (std::fstream *)__ox_implptr;
-		if(f == nullptr) {
-			err = "Unitialized FileStream implementation";
+		if(err != nullptr) {
 			return -1;
 		}
 
-		if(s == nullptr) {
-			err = "'s' is NULL";
+		#ifdef OX_DISABLE_FSTREAM
+			(void)s; (void)n;
+			err = "Flag OX_DISABLE_FSTREAM is set";
 			return -1;
-		}
+		#else
+			std::fstream *f = (std::fstream *)__ox_implptr;
+			if(f == nullptr) {
+				err = "Unitialized FileStream implementation";
+				return -1;
+			}
 
-		(void)f->read((char *)s, n);
+			if(s == nullptr) {
+				err = "'s' is NULL";
+				return -1;
+			}
 
-		if(f->eof())
+			(void)f->read((char *)s, n);
+
+			if(f->eof())
+				return f->gcount();
+
+			if(f->fail() && errno != 0) {
+				err = std::strerror(errno);
+				return -1;
+			}
+
 			return f->gcount();
-
-		if(f->fail() && errno != 0) {
-			err = std::strerror(errno);
-			return -1;
-		}
-
-		return f->gcount();
+		#endif
 	};
 
 	bool FileStream::eof(Error &err) {
-		if(err != nullptr)
-			return -1;
-
-		std::fstream *f = (std::fstream *)__ox_implptr;
-
-		if(f == nullptr) {
-			err = "Unitialized FileStream implementation";
+		if(err != nullptr) {
 			return -1;
 		}
 
-		(void)f->peek();
-		return f->eof();
+		#ifdef OX_DISABLE_FSTREAM
+			err = "Flag OX_DISABLE_FSTREAM is set";
+			return true;
+		#else
+			std::fstream *f = (std::fstream *)__ox_implptr;
+
+			if(f == nullptr) {
+				err = "Unitialized FileStream implementation";
+				return -1;
+			}
+
+			(void)f->peek();
+			return f->eof();
+		#endif
 	};
 
 	int FileStream::write(u8 *s, ulong n, Error &err) {
-		if(err != nullptr)
-			return -1;
-
-		std::fstream *f = (std::fstream *)__ox_implptr;
-
-		if(f == nullptr) {
-			err = "Unitialized FileStream implementation";
+		if(err != nullptr) {
 			return -1;
 		}
 
-		if(s == nullptr) {
-			err = "'s' is NULL";
+		#ifdef OX_DISABLE_FSTREAM
+			(void)s; (void)n;
+			err = "Flag OX_DISABLE_FSTREAM is set";
 			return -1;
-		}
+		#else
+			std::fstream *f = (std::fstream *)__ox_implptr;
 
-		(void)f->write((char *)s, n);
+			if(f == nullptr) {
+				err = "Unitialized FileStream implementation";
+				return -1;
+			}
 
-		if(f->eof())
-			return f->gcount();
+			if(s == nullptr) {
+				err = "'s' is NULL";
+				return -1;
+			}
 
-		if(f->fail() && errno != 0) {
-			err = std::strerror(errno);
-			return -1;
-		}
+			(void)f->write((char *)s, n);
 
-		return 0;
+			if(f->eof())
+				return f->gcount();
+
+			if(f->fail() && errno != 0) {
+				err = std::strerror(errno);
+				return -1;
+			}
+
+			return 0;
+		#endif
 	};
 };

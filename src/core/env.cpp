@@ -16,111 +16,148 @@
 **/
 
 #include "env.hpp"
-#include <cstdio>
 
-#if ox_has_include(<cstdlib>)
-	#include <cstdlib>
-#elif ox_has_include(<stdlib.h>)
-	#include <stdlib.h>
-#else
-	#error "Well, this is awkward..."
+#ifdef OX_DISABLE_ENV
+	#warning "Flag OX_DISABLE_ENV is set"
 #endif
 
-#if ox_has_include(<cerrno>)
-	#include <cerrno>
-#elif ox_has_include(<errno.h>)
-	#include <errno.h>
-#else
-	#error "Well, this is awkward..."
-#endif
+#ifndef OX_DISABLE_ENV
+	#include <cstdio>
 
-#if ox_has_include(<cstring>)
-	#include <cstring>
-#elif ox_has_include(<string.h>)
-	#include <string.h>
-#else
-	#error "Well, this is awkward..."
-#endif
+	#if ox_has_include(<cstdlib>)
+		#include <cstdlib>
+	#elif ox_has_include(<stdlib.h>)
+		#include <stdlib.h>
+	#else
+		#error "Well, this is awkward..."
+	#endif
 
-#if !defined(OX_DISABLE_ENVIRON) && ox_has_include(<unistd.h>)
-	#define OX_USE_ENVIRON 1
-	#include <unistd.h>
-#else
-	#warning "'environ' unavailable, Ox::Env::get_everything() will always fail"
-#endif
+	#if ox_has_include(<cerrno>)
+		#include <cerrno>
+	#elif ox_has_include(<errno.h>)
+		#include <errno.h>
+	#else
+		#error "Well, this is awkward..."
+	#endif
 
-#ifdef OX_OS_WINDOWS
-	extern "C" int setenv(const char *, const char *, bool);
-	extern "C" int unsetenv(const char *);
-	extern "C" int clearenv(void);
+	#if ox_has_include(<cstring>)
+		#include <cstring>
+	#elif ox_has_include(<string.h>)
+		#include <string.h>
+	#else
+		#error "Well, this is awkward..."
+	#endif
+
+	#if !defined(OX_DISABLE_ENVIRON) && ox_has_include(<unistd.h>)
+		#define OX_USE_ENVIRON 1
+		#include <unistd.h>
+	#else
+		#warning "'environ' unavailable, Ox::Env::get_everything() will always fail"
+	#endif
+
+	#ifdef OX_OS_WINDOWS
+		extern "C" int setenv(const char *, const char *, bool);
+		extern "C" int unsetenv(const char *);
+		extern "C" int clearenv(void);
+	#endif
 #endif
 
 namespace Ox {
 	namespace Env {
 		bool is_var_set(const char *name) {
-			using namespace std;
-			const char *v = getenv(name);
-			return v != nullptr && *v != '\0';
+			#ifdef OX_DISABLE_ENV
+				(void)name;
+				return false;
+			#else
+				using namespace std;
+				const char *v = getenv(name);
+				return v != nullptr && *v != '\0';
+			#endif
 		};
 
 		const char *get_var(const char *name) {
-			using namespace std;
-			return getenv(name);
+			#ifdef OX_DISABLE_ENV
+				(void)name;
+				return nullptr;
+			#else
+				using namespace std;
+				return getenv(name);
+			#endif
 		};
 
 		int set_var(const char *name, const char *value, bool overwrite, Ox::Error err) {
-			if(err != nullptr)
+			if(err != nullptr) {
 				return -1;
+			}
 
-			using namespace std;
+			#ifdef OX_DISABLE_ENV
+				err = "Flag OX_DISABLE_ENV is set";
+				return -1;
+			#else
+				using namespace std;
 
-			if(value == nullptr) {
-				unset_var(name);
+				if(value == nullptr) {
+					unset_var(name);
+					return 0;
+				}
+
+				if(name == nullptr) {
+					err = "'name' is NULL";
+					return -1;
+				}
+
+				if(*name == '\0') {
+					err = "'name' is a string of length 0";
+					return -1;
+				}
+				
+				if(setenv(name, value, overwrite) < 0) {
+					if(errno == EINVAL) {
+						err = "Invalid '=' character";
+						return -1;
+					}
+
+					if(errno == ENOMEM) {
+						err = "Insufficient memory to add a new variable to the environment";
+						return -1;
+					}
+
+					err.from_fmt("%s", strerror(errno));
+					err.from_c(strerror(errno));
+					return -1;
+				}
+
 				return 0;
-			}
-
-			if(name == nullptr) {
-				err = "'name' is NULL";
-				return -1;
-			}
-
-			if(*name == '\0') {
-				err = "'name' is a string of length 0";
-				return -1;
-			}
-			
-			if(setenv(name, value, overwrite) < 0) {
-				if(errno == EINVAL) {
-					err = "Invalid '=' character";
-					return -1;
-				}
-
-				if(errno == ENOMEM) {
-					err = "Insufficient memory to add a new variable to the environment";
-					return -1;
-				}
-
-				err.from_fmt("%s", strerror(errno));
-				err.from_c(strerror(errno));
-				return -1;
-			}
-
-			return 0;
+			#endif
 		};
 
 		void set_var(const char *name, const char *value, bool overwrite) {
-			Ox::Error e;
-			(void)set_var(name, value, overwrite, e);
+			#ifdef OX_DISABLE_ENV
+				(void)name; (void)value; (void)overwrite;
+				return;
+			#else
+				Ox::Error e;
+				(void)set_var(name, value, overwrite, e);
+			#endif
 		};
 
 		void unset_var(const char *name) {
-			using namespace std;
-			unsetenv(name);
+			#ifdef OX_DISABLE_ENV
+				(void)name;
+				return;
+			#else
+				using namespace std;
+				unsetenv(name);
+			#endif
 		};
 		
 		void unset_everything(void) {
-			using namespace std;
-			clearenv();
+			#ifdef OX_DISABLE_ENV
+				err = "Flag OX_DISABLE_ENV is set";
+			#else
+				using namespace std;
+				clearenv();
+			#endif
 		};
 	};
 };

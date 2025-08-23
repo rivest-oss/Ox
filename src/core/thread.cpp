@@ -17,34 +17,42 @@
 
 #include "thread.hpp"
 
-#if !defined(OX_DISABLE_CPPTHREAD) && ox_has_include(<thread>) && ox_has_include(<mutex>) && ox_has_include(<new>)
-	#define OX_USE_THREAD_STDCPP
-#elif !defined(OX_DISABLE_PTHREAD) && ox_has_include(<pthread.h>)
-	#define OX_USE_THREAD_PTHREAD
-#else
-	#error "No <thread> nor <pthread.h> support"
+#ifdef OX_DISABLE_THREAD
+	#warning "Flag OX_DISABLE_THREAD is set"
 #endif
 
-#ifdef OX_USE_THREAD_STDCPP
-	#include <thread>
-	#include <mutex>
-	#include <new>
-#elif defined(OX_USE_THREAD_PTHREAD)
-	#include <pthread.h>
-#else
-	#error "Well, this is awkward..."
+#ifndef OX_DISABLE_THREAD
+	#if !defined(OX_DISABLE_CPPTHREAD) && ox_has_include(<thread>) && ox_has_include(<mutex>) && ox_has_include(<new>)
+		#define OX_USE_THREAD_STDCPP
+	#elif !defined(OX_DISABLE_PTHREAD) && ox_has_include(<pthread.h>)
+		#define OX_USE_THREAD_PTHREAD
+	#else
+		#error "No <thread> nor <pthread.h> support"
+	#endif
+
+	#ifdef OX_USE_THREAD_STDCPP
+		#include <thread>
+		#include <mutex>
+		#include <new>
+	#elif defined(OX_USE_THREAD_PTHREAD)
+		#include <pthread.h>
+	#else
+		#error "Well, this is awkward..."
+	#endif
 #endif
 
 namespace Ox {
 	Thread::~Thread(void) {
-		#ifdef OX_USE_THREAD_STDCPP
+		#ifdef OX_DISABLE_THREAD
+			return;
+		#elif defined(OX_USE_THREAD_STDCPP)
 			std::thread *t = (std::thread *)handle;
 			if(t != nullptr) {
 				t->join();
 				t->~thread();
 				t = nullptr;
 			}
-		#elif OX_USE_THREAD_PTHREAD
+		#elif defined(OX_USE_THREAD_PTHREAD)
 			pthread_t *t = (pthread_t *)handle;
 			if(t == nullptr)
 				return;
@@ -65,7 +73,11 @@ namespace Ox {
 			return -1;
 		}
 
-		#ifdef OX_USE_THREAD_STDCPP
+		#ifdef OX_DISABLE_THREAD
+			(void)err; (void)f; (void)user;
+			err = "Flag OX_DISABLE_THREAD is set";
+			return -1;
+		#elif defined(OX_USE_THREAD_STDCPP)
 			std::thread *t = Ox::inhale<std::thread>(err);
 			if(t == nullptr)
 				return -1;
@@ -76,7 +88,7 @@ namespace Ox {
 			handle = t;
 
 			return 0;
-		#elif OX_USE_THREAD_PTHREAD
+		#elif defined(OX_USE_THREAD_PTHREAD)
 			struct __thread_user_s {
 				callable_t f;
 				void *user;
@@ -109,14 +121,16 @@ namespace Ox {
 	};
 
 	void Thread::join(void) {
-		#ifdef OX_USE_THREAD_STDCPP
+		#ifdef OX_DISABLE_THREAD
+			return;
+		#elif defined(OX_USE_THREAD_STDCPP)
 			std::thread *t = (std::thread *)handle;
 			if(t != nullptr) {
 				t->join();
 				t->~thread();
 				handle = t = nullptr;
 			}
-		#elif OX_USE_THREAD_PTHREAD
+		#elif defined(OX_USE_THREAD_PTHREAD)
 			pthread_t *t = (pthread_t *)handle;
 			if(t == nullptr)
 				return;
@@ -130,11 +144,13 @@ namespace Ox {
 	};
 
 	Ox::pointer_t Thread::get_id(void) {
-		#ifdef OX_USE_THREAD_STDCPP
+		#ifdef OX_DISABLE_THREAD
+			return 0;
+		#elif defined(OX_USE_THREAD_STDCPP)
 			std::thread::id t_id = std::this_thread::get_id();
 			std::size_t id_hash = std::hash<std::thread::id>{}(t_id);
 			return (Ox::pointer_t)id_hash;
-		#elif OX_USE_THREAD_PTHREAD
+		#elif defined(OX_USE_THREAD_PTHREAD)
 			return pthread_self();
 		#else
 			#error "Well, this is awkward..."
@@ -142,9 +158,11 @@ namespace Ox {
 	};
 
 	int Thread::hint_hardware_concurrency(void) {
-		#ifdef OX_USE_THREAD_STDCPP
+		#ifdef OX_DISABLE_THREAD
+			return -1;
+		#elif defined(OX_USE_THREAD_STDCPP)
 			return std::thread::hardware_concurrency();
-		#elif OX_USE_THREAD_PTHREAD
+		#elif defined(OX_USE_THREAD_PTHREAD)
 			return 1;	// [TODO] : Well, this sucks.
 		#else
 			#error "Well, this is awkward..."
@@ -152,7 +170,9 @@ namespace Ox {
 	};
 
 	Mutex::Mutex(void) {
-		#ifdef OX_USE_THREAD_STDCPP
+		#ifdef OX_DISABLE_THREAD
+			return;
+		#elif defined(OX_USE_THREAD_STDCPP)
 			Ox::Error err;
 
 			std::mutex *m = Ox::inhale<std::mutex>(err);
@@ -163,7 +183,7 @@ namespace Ox {
 
 			// I hate this...
 			new (m) std::mutex();
-		#elif OX_USE_THREAD_PTHREAD
+		#elif defined(OX_USE_THREAD_PTHREAD)
 			pthread_mutex_init((pthread_mutex_t *)handle, nullptr);
 		#else
 			#error "Well, this is awkward..."
@@ -171,13 +191,15 @@ namespace Ox {
 	};
 
 	Mutex::~Mutex(void) {
-		#ifdef OX_USE_THREAD_STDCPP
+		#ifdef OX_DISABLE_THREAD
+			return;
+		#elif defined(OX_USE_THREAD_STDCPP)
 			std::mutex *m = (std::mutex *)handle;
 			if(m == nullptr)
 				return;
 
 			m->~mutex();
-		#elif OX_USE_THREAD_PTHREAD
+		#elif defined(OX_USE_THREAD_PTHREAD)
 			pthread_mutex_t *m = (pthread_mutex_t *)handle;
 			if(m != nullptr)
 				pthread_mutex_destroy(m);
@@ -194,7 +216,10 @@ namespace Ox {
 			return false;
 		}
 
-		#ifdef OX_USE_THREAD_STDCPP
+		#ifdef OX_DISABLE_THREAD
+			err = "Flag OX_DISABLE_THREAD is set";
+			return false;
+		#elif defined(OX_USE_THREAD_STDCPP)
 			std::mutex *m = (std::mutex *)handle;
 			bool rc = m->try_lock();
 			Ox::pointer_t id_self = Thread::get_id();
@@ -205,7 +230,7 @@ namespace Ox {
 				rc = true;
 
 			return rc;
-		#elif OX_USE_THREAD_PTHREAD
+		#elif defined(OX_USE_THREAD_PTHREAD)
 			pthread_mutex_t *m = (pthread_mutex_t *)handle;
 			int rc = pthread_mutex_trylock(m);
 			Ox::pointer_t id_self = Thread::get_id();
@@ -231,7 +256,10 @@ namespace Ox {
 			return -1;
 		}
 
-		#ifdef OX_USE_THREAD_STDCPP
+		#ifdef OX_DISABLE_THREAD
+			err = "Flag OX_DISABLE_THREAD is set";
+			return -1;
+		#elif defined(OX_USE_THREAD_STDCPP)
 			Ox::pointer_t id_self = Thread::get_id();
 			if(owner != id_self) {
 				err = "Not mutex current owner or already unlocked";
@@ -243,7 +271,7 @@ namespace Ox {
 			owner = id_self;
 
 			return 0;
-		#elif OX_USE_THREAD_PTHREAD
+		#elif defined(OX_USE_THREAD_PTHREAD)
 			Ox::pointer_t id_self = Thread::get_id();
 			if(owner != id_self) {
 				err = "Not mutex current owner or already unlocked";
@@ -271,7 +299,10 @@ namespace Ox {
 			return -1;
 		}
 
-		#ifdef OX_USE_THREAD_STDCPP
+		#ifdef OX_DISABLE_THREAD
+			err = "Flag OX_DISABLE_THREAD is set";
+			return -1;
+		#elif defined(OX_USE_THREAD_STDCPP)
 			Ox::pointer_t id_self = Thread::get_id();
 			if(owner != id_self) {
 				err = "Not mutex current owner or already unlocked";
@@ -283,7 +314,7 @@ namespace Ox {
 			owner = 0;
 
 			return 0;
-		#elif OX_USE_THREAD_PTHREAD
+		#elif defined(OX_USE_THREAD_PTHREAD)
 			Ox::pointer_t id_self = Thread::get_id();
 			if(owner != id_self) {
 				err = "Not mutex current owner or already unlocked";

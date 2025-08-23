@@ -18,18 +18,24 @@
 #include "library.hpp"
 #include "../macros.hpp"
 
-#if !defined(OX_DISABLE_DLFCN) && ox_has_include(<dlfcn.h>)
-	#define OX_USE_DLIB_DLFCN
-#elif !defined(OX_DISABLE_WINDOWS_H) && defined(OX_OS_WINDOWS) && ox_has_include(<windows.h>)
-	#define OX_USE_DLIB_WINDOWS_H
-#else
-	#error "Well, this is awkward..."
+#ifdef OX_DISABLE_DLIB
+	#warning "Flag OX_DISABLE_DLIB is set"
 #endif
 
-#ifdef OX_USE_DLIB_DLFCN
-	#include <dlfcn.h>
-#elif defined(OX_USE_DLIB_WINDOWS_H)
-	#include <windows.h>
+#ifndef OX_DISABLE_DLIB
+	#if !defined(OX_DISABLE_DLFCN) && ox_has_include(<dlfcn.h>)
+		#define OX_USE_DLIB_DLFCN
+	#elif !defined(OX_DISABLE_WINDOWS_H) && defined(OX_OS_WINDOWS) && ox_has_include(<windows.h>)
+		#define OX_USE_DLIB_WINDOWS_H
+	#else
+		#error "Well, this is awkward..."
+	#endif
+
+	#ifdef OX_USE_DLIB_DLFCN
+		#include <dlfcn.h>
+	#elif defined(OX_USE_DLIB_WINDOWS_H)
+		#include <windows.h>
+	#endif
 #endif
 
 namespace Ox {
@@ -55,7 +61,10 @@ namespace Ox {
 			return -1;
 		}
 
-		#ifdef OX_USE_DLIB_DLFCN
+		#ifdef OX_DISABLE_DLIB
+			err = "Flag OX_DISABLE_DLIB is set";
+			return -1;
+		#elif defined(OX_USE_DLIB_DLFCN)
 			handle = dlopen(p, RTLD_LAZY);
 			if(handle == nullptr) {
 				char *s = dlerror();
@@ -84,7 +93,9 @@ namespace Ox {
 	};
 
 	void DynamicLibrary::close(void) {
-		#ifdef OX_USE_DLIB_DLFCN
+		#ifdef OX_DISABLE_DLIB
+			return;
+		#elif defined(OX_USE_DLIB_DLFCN)
 			if(is_open())
 				(void)dlclose(handle);
 		#elif defined(OX_USE_DLIB_WINDOWS_H)
@@ -106,12 +117,17 @@ namespace Ox {
 			return -1;
 		}
 
-		Ox::Error e;
-		void *addr = cast_symbol<void *>(name, e);
-		if(addr == nullptr || e != nullptr)
+		#ifdef OX_DISABLE_DLIB
+			err = "Flag OX_DISABLE_DLIB is set";
 			return false;
+		#else
+			Ox::Error e;
+			void *addr = cast_symbol<void *>(name, e);
+			if(addr == nullptr || e != nullptr)
+				return false;
 
-		return true;
+			return true;
+		#endif
 	};
 
 	template<typename T>
@@ -124,7 +140,10 @@ namespace Ox {
 			return nullptr;
 		}
 
-		#ifdef OX_USE_DLIB_DLFCN
+		#ifdef OX_DISABLE_DLIB
+			err = "Flag OX_DISABLE_DLIB is set";
+			return nullptr;
+		#elif defined(OX_USE_DLIB_DLFCN)
 			void *addr = dlsym(handle, name);
 			if(addr == nullptr) {
 				char *s = dlerror();
