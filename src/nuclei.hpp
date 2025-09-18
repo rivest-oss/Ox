@@ -20,19 +20,40 @@
 #include <cstdlib>
 #include "macros.hpp"
 
+#ifndef OX_CUSTOM_INT
+	#if !defined(OX_DISABLE_CSTDINT) && ox_has_include(<cstdint>)
+		#include <cstdint>
+	#elif !defined(OX_DISABLE_STDINT_H) && ox_has_include(<stdint.h>)
+		#include <stdio.h>
+	#else
+		#error "Well, this is awkward..."
+	#endif
+
+	#define OX_UINT8 uint8_t
+	#define OX_UINT16 uint16_t
+	#define OX_UINT32 uint32_t
+	#define OX_UINT64 uint64_t
+	#define OX_INT8 int8_t
+	#define OX_INT16 int16_t
+	#define OX_INT32 int32_t
+	#define OX_INT64 int64_t
+	#define OX_F32 float
+	#define OX_F64 double
+#endif
+
 namespace Ox {
-	typedef uint8_t u8;
-	typedef uint16_t u16;
-	typedef uint32_t u32;
-	typedef uint64_t u64;
+	typedef OX_UINT8 u8;
+	typedef OX_UINT16 u16;
+	typedef OX_UINT32 u32;
+	typedef OX_UINT64 u64;
+
+	typedef OX_INT8 i8;
+	typedef OX_INT16 i16;
+	typedef OX_INT32 i32;
+	typedef OX_INT64 i64;
 	
-	typedef int8_t i8;
-	typedef int16_t i16;
-	typedef int32_t i32;
-	typedef int64_t i64;
-	
-	typedef float f32;
-	typedef double f64;
+	typedef OX_F32 f32;
+	typedef OX_F64 f64;
 
 	typedef unsigned int uint;
 	typedef unsigned long ulong;
