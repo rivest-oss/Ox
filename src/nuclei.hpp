@@ -30,7 +30,7 @@
 	#if !defined(OX_DISABLE_CSTDINT) && ox_has_include(<cstdint>)
 		#include <cstdint>
 	#elif !defined(OX_DISABLE_STDINT_H) && ox_has_include(<stdint.h>)
-		#include <stdio.h>
+		#include <stdint.h>
 	#else
 		#error "Well, this is awkward..."
 	#endif
