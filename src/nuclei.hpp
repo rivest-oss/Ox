@@ -18,15 +18,17 @@
 #pragma once
 #include "macros.hpp"
 
-#if !defined(OX_DISABLE_CSTDLIB) && ox_has_include(<cstdlib>)
-	#include <cstdlib>
-#elif !defined(OX_DISABLE_STDLIB_H) && ox_has_include(<stdlib.h>)
-	#include <stdlib.h>
-#else
-	#error "Well, this is awkward..."
+#ifndef OX_CUSTOM_STDLIB
+	#if !defined(OX_DISABLE_CSTDLIB) && ox_has_include(<cstdlib>)
+		#include <cstdlib>
+	#elif !defined(OX_DISABLE_STDLIB_H) && ox_has_include(<stdlib.h>)
+		#include <stdlib.h>
+	#else
+		#error "Well, this is awkward..."
+	#endif
 #endif
 
-#ifndef OX_CUSTOM_INT
+#ifndef OX_CUSTOM_STDINT
 	#if !defined(OX_DISABLE_CSTDINT) && ox_has_include(<cstdint>)
 		#include <cstdint>
 	#elif !defined(OX_DISABLE_STDINT_H) && ox_has_include(<stdint.h>)
