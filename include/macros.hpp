@@ -15,12 +15,6 @@
 ** along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-/*
-#define OX_TODO_STR2(x) #x
-#define OX_TODO_STR1(x) OX_TODO_STR2(x)
-#define OX_TODO(msg) _Pragma("message \"[TODO] " __FILE __ ":" OX_TODO_STR1(__LINE__) ": " msg "\"");
-*/
-
 // Sources:
 // * https://github.com/cpredef/predef
 #if(defined(__linux__))
