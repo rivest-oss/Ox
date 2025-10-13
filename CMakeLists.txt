@@ -7,7 +7,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Programme
 file(GLOB_RECURSE sources CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 
-add_executable(${PROJECT_NAME} "${sources}")
+file(GLOB_RECURSE testsrc CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp")
+
+add_executable(${PROJECT_NAME} "${sources}" "${testsrc}")
 target_link_libraries(${PROJECT_NAME} raylib)
 target_compile_definitions(${PROJECT_NAME} PRIVATE OX_TEST)
 target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic)
