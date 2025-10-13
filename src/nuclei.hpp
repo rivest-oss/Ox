@@ -222,4 +222,17 @@ namespace Ox {
 	
 	// Frees previously allocated memory.
 	void exhale(void *p);
+	
+	typedef struct {
+		Ox::u8 r;
+		Ox::u8 g;
+		Ox::u8 b;
+	} rgb24_t;
+	
+	typedef struct {
+		Ox::u8 r;
+		Ox::u8 g;
+		Ox::u8 b;
+		Ox::u8 a;
+	} rgba32_t;
 };
