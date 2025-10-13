@@ -15,8 +15,8 @@
 ** along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#include "library.hpp"
-#include "../macros.hpp"
+#include "../include/core/library.hpp"
+#include "../include/macros.hpp"
 
 #ifdef OX_DISABLE_DLIB
 	#warning "Flag OX_DISABLE_DLIB is set"

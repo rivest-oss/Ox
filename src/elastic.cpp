@@ -15,6 +15,6 @@
 ** along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#include "elastic.hpp"
+#include "../include/core/elastic.hpp"
 
 namespace Ox {};

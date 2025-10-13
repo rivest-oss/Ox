@@ -15,7 +15,7 @@
 ** along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#include "crc.hpp"
+#include "../include/crypto/crc.hpp"
 
 namespace Ox {
 	CRC32::CRC32(void) {

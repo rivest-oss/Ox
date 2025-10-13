@@ -15,7 +15,7 @@
 ** along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#include "filesystem.hpp"
+#include "../include/io/filesystem.hpp"
 
 #ifdef OX_DISABLE_FS
 	#warning "Flag OX_DISABLE_FS is set"

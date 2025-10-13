@@ -15,7 +15,7 @@
 ** along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#include "nuclei.hpp"
+#include "../include/nuclei.hpp"
 #include <cstdio>
 #include <cstdarg>
 

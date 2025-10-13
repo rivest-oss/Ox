@@ -15,7 +15,7 @@
 ** along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#include "stream.hpp"
+#include "../include/io/stream.hpp"
 
 namespace Ox {
 	u8 BasicIOStream::readU8(Error &err) {

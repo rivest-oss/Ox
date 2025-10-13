@@ -15,7 +15,7 @@
 ** along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#include "thread.hpp"
+#include "../include/core/thread.hpp"
 
 #ifdef OX_DISABLE_THREAD
 	#warning "Flag OX_DISABLE_THREAD is set"

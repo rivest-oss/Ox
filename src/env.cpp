@@ -15,7 +15,7 @@
 ** along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#include "env.hpp"
+#include "../include/core/env.hpp"
 
 #ifdef OX_DISABLE_ENV
 	#warning "Flag OX_DISABLE_ENV is set"

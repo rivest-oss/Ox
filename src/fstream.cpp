@@ -15,7 +15,7 @@
 ** along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#include "fstream.hpp"
+#include "../include/io/fstream.hpp"
 
 #ifdef OX_DISABLE_FSTREAM
 	#warning "Flag OX_DISABLE_FSTREAM is set"
