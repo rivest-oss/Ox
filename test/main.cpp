@@ -17,10 +17,10 @@
 
 #ifdef OX_TEST
 
-#include "../nuclei.hpp"
-#include "../crypto/crc.hpp"
-#include "../io/filesystem.hpp"
-#include "../io/fstream.hpp"
+#include "../include/nuclei.hpp"
+#include "../include/crypto/crc.hpp"
+#include "../include/io/filesystem.hpp"
+#include "../include/io/fstream.hpp"
 #include <cstdarg>
 #include <cstring>
 #include <cstdio>
