@@ -34,15 +34,14 @@ namespace Ox {
 				void *implptr = nullptr;
 			
 			public:
-				UDP(void);
-				~UDP(void);
+				~UDP(void) {};
 
-				int init(Error &err);
-				int bind(Socket socket, Error &err);
-				void close(void);
+				int init(Error &err){(void)err;return 0;};
+				int bind(Socket socket, Error &err){(void)socket;(void)err;return 0;};
+				void close(void) {};
 
-				int read(udp_packet_t *packet, Error &err);
-				int send(udp_packet_t packet, Error &err);
+				udp_packet_t read(Error &err) {(void)err;udp_packet_t p;return p;};
+				int send(udp_packet_t packet, Error &err) {(void)packet;(void)err;return 0;};
 		};
 	};
 };
