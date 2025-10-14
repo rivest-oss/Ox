@@ -78,7 +78,7 @@ namespace Ox {
 
 	#if defined(OX_DEBUG) || !defined(NDEBUG)
 		#define ox_assert(x,y) \
-			Ox::__ox_assert__(__FILE__, __LINE__, __PRETTY_FUNCTION__, y);
+			if((x) == false) Ox::__ox_assert__(__FILE__, __LINE__, __PRETTY_FUNCTION__, y);
 	#else
 		#define ox_assert(x,y) (void)0;
 	#endif
