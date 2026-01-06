@@ -9,6 +9,12 @@ file(GLOB_RECURSE sources CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c
 
 file(GLOB_RECURSE testsrc CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp")
 
+file(
+	COPY_FILE
+	${CMAKE_CURRENT_SOURCE_DIR}/test/cost-cor.qoi
+	${CMAKE_CURRENT_BINARY_DIR}/cost-cor.qoi
+)
+
 add_executable(${PROJECT_NAME} "${sources}" "${testsrc}")
 target_link_libraries(${PROJECT_NAME} raylib)
 target_compile_definitions(${PROJECT_NAME} PRIVATE OX_TEST)

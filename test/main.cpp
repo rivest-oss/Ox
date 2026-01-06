@@ -21,6 +21,7 @@
 #include "../include/crypto/crc.hpp"
 #include "../include/io/filesystem.hpp"
 #include "../include/io/fstream.hpp"
+#include "../include/formats/qoi.hpp"
 #include <cstdarg>
 #include <cstring>
 #include <cstdio>
@@ -149,6 +150,39 @@ void test_dir_read(void) {
 	OK();
 };
 
+void test_qoi_read(void) {
+	SUPERVISE("Codec/QOI");
+
+	Ox::Error err;
+
+	Ox::FileStream rs;
+	ENFORCE(rs.open("./cost-cor.qoi",  Ox::in, err) == 0, "Couldn't open the .qoi example file: %s", err.c_str());
+
+	Ox::Media::QOI qoi;
+	ENFORCE(qoi.parse(rs, err) == 0, "QOI decode failed: %s", err.c_str());
+
+	Ox::FileStream ws;
+	ws.open("./cost-cor.qoi.rgb24", Ox::out, err);
+
+	std::printf("QOI:\n");
+	std::printf("    Width: %i\n", qoi.width(err));
+	std::printf("    Height: %i\n", qoi.height(err));
+	std::printf("    Channels: %i\n", qoi.channels(err));
+	std::printf("    Colorspace: %i\n", qoi.colorspace(err));
+
+	for(Ox::ulong i = 0, wh = qoi.width(err) * qoi.height(err); i < wh; i++) {
+		Ox::u8 buff3[3];
+		buff3[0] = qoi.pixels(err)[i].r;
+		buff3[1] = qoi.pixels(err)[i].g;
+		buff3[2] = qoi.pixels(err)[i].b;
+		ws.write(buff3, 3, err);
+	};
+
+	ws.close();
+
+	OK();
+};
+
 int main(void) {
 	std::printf("\x1b[0m");
 
@@ -159,6 +193,8 @@ int main(void) {
 	test_file_write();
 	test_file_read();
 	test_dir_read();
+
+	test_qoi_read();
 
 	return 0;
 };
