@@ -227,12 +227,12 @@ namespace Ox {
 		Ox::u8 r;
 		Ox::u8 g;
 		Ox::u8 b;
-	} rgb24_t;
+	} rgb24p_t;
 	
 	typedef struct {
 		Ox::u8 r;
 		Ox::u8 g;
 		Ox::u8 b;
 		Ox::u8 a;
-	} rgba32_t;
+	} rgba32p_t;
 };

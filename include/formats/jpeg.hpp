@@ -35,7 +35,7 @@ namespace Ox {
 
 				int width(Ox::Error &err);
 				int height(Ox::Error &err);
-				rgb24_t *pixels(Ox::Error &err);
+				rgb24p_t *pixels(Ox::Error &err);
 		};
 	};
 };
