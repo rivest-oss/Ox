@@ -254,5 +254,171 @@ namespace Ox {
 			_qoi_t *qoi = (_qoi_t *)handle;
 			return qoi->framebuff;
 		};
+
+		int QOI::write(Ox::BasicIOStream &os, Ox::Error &err, int width, int height, rgba32p_t *pixels, Ox::u8 channels, Ox::u8 colorspace) {
+			if(err != nullptr)
+				return -1;
+
+			if(width == 0 || height == 0) {
+				err = "Invalid resolution";
+				return -1;
+			}
+
+			if(width > 65'535 || height > 65'535) {
+				err = "Unsupported resolution";
+				return -1;
+			}
+
+			if(pixels == nullptr) {
+				err = "Invalid pixels pointer";
+				return -1;
+			}
+
+			if(colorspace != 0 && colorspace != 1) {
+				err = "Invalid colorspace";
+				return -1;
+			}
+
+			if(channels != 3 && channels != 4) {
+				err = "Invalid number of channels";
+				return -1;
+			}
+
+			Ox::ulong px_len = width * height;
+
+			os.write((Ox::u8 *)"qoif", 4, err);
+			os.writeU32BE(width, err);
+			os.writeU32BE(height, err);
+			os.writeU8(channels, err);
+			os.writeU8(colorspace, err);
+
+			rgba32p_t index[64];
+			for(int i = 0; i < 64; i++)
+				index[i] = rgba32p_t { 0x00, 0x00, 0x00, 0x00 };
+
+			rgba32p_t prev_px { 0x00, 0x00, 0x00, 0xff };
+			rgba32p_t curr_px { 0x00, 0x00, 0x00, 0xff };
+			Ox::u8 run = 0;
+
+			for(Ox::ulong px_i = 0; px_i < px_len; px_i++, pixels++, prev_px = curr_px) {
+				curr_px = *pixels;
+
+				if(
+					curr_px.r == prev_px.r
+					&& curr_px.g == prev_px.g
+					&& curr_px.b == prev_px.b
+					&& curr_px.a == prev_px.a
+				) {
+					run++;
+					if(run == 62) {
+						os.writeU8(0xc0 | (run - 1), err);
+						run = 0;
+
+						if(err != nullptr)
+							return -1;
+					}
+
+					continue;
+				}
+
+				if(run > 0) {
+					os.writeU8(0xc0 | (run - 1), err);
+					run = 0;
+
+					if(err != nullptr)
+						return -1;
+				}
+
+				Ox::u8 hash = _qoi_hash(curr_px);
+
+				rgba32p_t indexed_px = index[hash];
+				if(
+					curr_px.r == indexed_px.r
+					&& curr_px.g == indexed_px.g
+					&& curr_px.b == indexed_px.b
+					&& curr_px.a == indexed_px.a
+				) {
+					os.writeU8(hash, err);
+					if(err != nullptr)
+						return -1;
+
+					continue;
+				}
+
+				if(curr_px.a != prev_px.a) {
+					os.writeU8(0xff, err);
+					os.writeU8(curr_px.r, err);
+					os.writeU8(curr_px.g, err);
+					os.writeU8(curr_px.b, err);
+					os.writeU8(curr_px.a, err);
+
+					if(err != nullptr)
+						return -1;
+
+					continue;
+				}
+
+				Ox::i8 dr = curr_px.r - prev_px.r;
+				Ox::i8 dg = curr_px.g - prev_px.g;
+				Ox::i8 db = curr_px.b - prev_px.b;
+
+				Ox::i8 dg_dr = dr - dg;
+				Ox::i8 dg_db = db - dg;
+
+				if(
+					dr > -3 && dr < 2
+					&& dg > -3 && dg < 2
+					&& db > -3 && db < 2
+				) {
+					Ox::u8 op = 0x40;
+					op |= (2 + dr) << 4;
+					op |= (2 + dg) << 2;
+					op |=  2 + db;
+
+					os.writeU8(0x40 | op, err);
+					if(err != nullptr)
+						return -1;
+
+					continue;
+				}
+
+				if(
+					dg_dr > -9 && dg_dr < 8
+					&& dg > -33 && dg < 32
+					&& dg_db > -9 && dg_db < 8
+				) {
+					os.writeU8(0x80 | (32 + dg), err);
+					os.writeU8(((8 + dg_dr) << 4) | (8 + dg_db), err);
+
+					if(err != nullptr)
+						return -1;
+
+					continue;
+				}
+
+				os.writeU8(0xfe, err);
+				os.writeU8(curr_px.r, err);
+				os.writeU8(curr_px.g, err);
+				os.writeU8(curr_px.b, err);
+
+				if(err != nullptr)
+					return -1;
+			};
+
+			Ox::u8 bottom[8] = {
+				0,0,0,0,0,0,0,
+				0x01
+			};
+
+			if(run > 0)
+				os.writeU8(0xc0 | (run - 1), err);
+
+			os.write(bottom, 8, err);
+			
+			if(err != nullptr)
+				return -1;
+
+			return 0;
+		};
 	};
 };

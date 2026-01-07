@@ -26,6 +26,11 @@ namespace Ox {
 				void *handle = nullptr;
 			
 			public:
+				typedef enum : Ox::u8 {
+					sRGB = 0,		// sRGB with linear alpha
+					linearRGB = 1,	// linear RGBA
+				} Colorspace;
+
 				QOI(void);
 				~QOI(void);
 
@@ -38,6 +43,8 @@ namespace Ox {
 				int width(Ox::Error &err);
 				int height(Ox::Error &err);
 				rgba32p_t *pixels(Ox::Error &err);
+
+				int write(Ox::BasicIOStream &os, Ox::Error &err, int width, int height, rgba32p_t *pixels, Ox::u8 channels, Ox::u8 colorspace);
 		};
 	};
 };
