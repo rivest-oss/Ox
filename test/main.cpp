@@ -158,13 +158,13 @@ void test_qoi_read(void) {
 	Ox::FileStream rs;
 	ENFORCE(rs.open("./cost-cor.qoi",  Ox::in, err) == 0, "Couldn't open the .qoi example file: %s", err.c_str());
 
-	Ox::Media::QOI qoi;
-	ENFORCE(qoi.parse(rs, err) == 0, "QOI decode failed: %s", err.c_str());
+	Ox::Media::QOI::params_t qoi = Ox::Media::QOI::decode(rs, err);
+	ENFORCE(err == nullptr, "QOI decode failed: %s", err.c_str());
 
 	Ox::FileStream ws;
 	ws.open("./cost-cor.qoi.qoi", Ox::out, err);
 
-	ENFORCE(qoi.write(ws, err, qoi.width(err), qoi.height(err), qoi.pixels(err), qoi.channels(err), qoi.colorspace(err)) == 0, "QOI encode failed: %s", err.c_str());
+	ENFORCE(Ox::Media::QOI::encode(ws, err, qoi) == 0, "QOI encode failed: %s", err.c_str());
 
 	ws.close();
 

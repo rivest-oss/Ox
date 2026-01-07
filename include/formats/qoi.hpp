@@ -22,29 +22,22 @@
 namespace Ox {
 	namespace Media {
 		class QOI {
-			private:
-				void *handle = nullptr;
-			
 			public:
 				typedef enum : Ox::u8 {
 					sRGB = 0,		// sRGB with linear alpha
 					linearRGB = 1,	// linear RGBA
 				} Colorspace;
 
-				QOI(void);
-				~QOI(void);
+				typedef struct params_t {
+					int width = -1, height = -1;
+					Colorspace colorspace = sRGB;
+					Ox::u8 num_of_channels = 0;
 
-				void init(void);
-				int parse(Ox::BasicIOStream &rs, Ox::Error &err);
-				void deinit(void);
+					rgba32p_t *pixels = nullptr;
+				} params_t;
 
-				Ox::u8 channels(Ox::Error &err);
-				Ox::u8 colorspace(Ox::Error &err);
-				int width(Ox::Error &err);
-				int height(Ox::Error &err);
-				rgba32p_t *pixels(Ox::Error &err);
-
-				int write(Ox::BasicIOStream &os, Ox::Error &err, int width, int height, rgba32p_t *pixels, Ox::u8 channels, Ox::u8 colorspace);
+				static params_t decode(Ox::BasicIOStream &rs, Ox::Error &err);
+				static int encode(Ox::BasicIOStream &os, Ox::Error &err, params_t params);
 		};
 	};
 };

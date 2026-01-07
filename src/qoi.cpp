@@ -23,38 +23,19 @@ namespace Ox {
 			return (v.r * 3 + v.g * 5 + v.b * 7 + v.a * 11) & 0x3f;
 		};
 
-		typedef struct _qoi_t {
-			int width, height;
-			Ox::u8 channels, colorspace;
-			rgba32p_t *framebuff = nullptr;
-		} _qoi_t;
-
-		QOI::QOI(void) {
-			handle = nullptr;
-		};
-
-		QOI::~QOI(void) {
-			deinit();
-		};
-
-		void QOI::init(void) {
-			deinit();
-		};
-
-		int QOI::parse(Ox::BasicIOStream &rs, Ox::Error &err) {
-			deinit();
+		QOI::params_t QOI::decode(Ox::BasicIOStream &rs, Ox::Error &err) {
+			params_t params {
+				-1, -1,
+				sRGB, 0,
+				nullptr,
+			};
 
 			if(err != nullptr)
-				return -1;
-
-			if(handle != nullptr) {
-				err = "QOI already decoded or in progress";
-				return -1;
-			}
+				return params;
 
 			char magic[4];
 			if(rs.read((Ox::u8 *)magic, 4, err) != 4)
-				return -1;
+				return params;
 
 			if(
 				magic[0] != 'q'
@@ -63,7 +44,7 @@ namespace Ox {
 				|| magic[3] != 'f'
 			) {
 				err = "Invalid file header";
-				return -1;
+				return params;
 			}
 
 			Ox::u32 width = rs.readU32BE(err);
@@ -73,29 +54,29 @@ namespace Ox {
 
 			if(width > 65535 || height > 65535) {
 				err = "Unsupported resolution";
-				return -1;
+				return params;
 			}
 
 			if(width < 1 || height < 1) {
 				err = "Invalid resolution";
-				return -1;
+				return params;
 			}
 
 			if(channels != 3 && channels != 4) {
 				err = "Invalid channels number";
-				return -1;
+				return params;
 			}
 
 			if(colorspace != 0 && colorspace != 1) {
 				err = "Invalid colorspace";
-				return -1;
+				return params;
 			}
 
 			Ox::ulong fb_len = width * height;
 			Ox::rgba32p_t *fb = Ox::inhale<Ox::rgba32p_t>(fb_len, err);
 
 			if(fb == nullptr)
-				return -1;
+				return params;
 
 			rgba32p_t index[64];
 			for(int i = 0; i < 64; i++)
@@ -157,7 +138,7 @@ namespace Ox {
 
 					if(err != nullptr) {
 						Ox::exhale(fb);
-						return -1;
+						return params;
 					}
 				}
 
@@ -171,126 +152,54 @@ namespace Ox {
 
 			if(err != nullptr) {
 				Ox::exhale(fb);
-				return -1;
+				return params;
 			}
 
-			_qoi_t *qoi = Ox::inhale<_qoi_t>(err);
-			qoi->width = width;
-			qoi->height = height;
-			qoi->channels = channels;
-			qoi->colorspace = colorspace;
-			qoi->framebuff = fb;
+			params.width = width;
+			params.height = height;
+			params.colorspace = (Colorspace)colorspace;
+			params.num_of_channels = channels;
+			params.pixels = fb;
 
-			handle = qoi;
-
-			return 0;
+			return params;
 		};
 
-		void QOI::deinit(void) {
-			if(handle != nullptr)
-				Ox::exhale(handle);
-		};
-
-		Ox::u8 QOI::channels(Ox::Error &err) {
+		int QOI::encode(Ox::BasicIOStream &os, Ox::Error &err, params_t params) {
 			if(err != nullptr)
 				return -1;
 
-			if(handle == nullptr) {
-				err = "Unitialized QOI implementation";
-				return -1;
-			}
-
-			_qoi_t *qoi = (_qoi_t *)handle;
-			return qoi->channels;
-		};
-		Ox::u8 QOI::colorspace(Ox::Error &err) {
-			if(err != nullptr)
-				return -1;
-
-			if(handle == nullptr) {
-				err = "Unitialized QOI implementation";
-				return -1;
-			}
-
-			_qoi_t *qoi = (_qoi_t *)handle;
-			return qoi->colorspace;
-		};
-
-		int QOI::width(Ox::Error &err) {
-			if(err != nullptr)
-				return -1;
-
-			if(handle == nullptr) {
-				err = "Unitialized QOI implementation";
-				return -1;
-			}
-
-			_qoi_t *qoi = (_qoi_t *)handle;
-			return qoi->width;
-		};
-
-		int QOI::height(Ox::Error &err) {
-			if(err != nullptr)
-				return -1;
-
-			if(handle == nullptr) {
-				err = "Unitialized QOI implementation";
-				return -1;
-			}
-
-			_qoi_t *qoi = (_qoi_t *)handle;
-			return qoi->height;
-		};
-
-		rgba32p_t *QOI::pixels(Ox::Error &err) {
-			if(err != nullptr)
-				return nullptr;
-
-			if(handle == nullptr) {
-				err = "Unitialized QOI implementation";
-				return nullptr;
-			}
-
-			_qoi_t *qoi = (_qoi_t *)handle;
-			return qoi->framebuff;
-		};
-
-		int QOI::write(Ox::BasicIOStream &os, Ox::Error &err, int width, int height, rgba32p_t *pixels, Ox::u8 channels, Ox::u8 colorspace) {
-			if(err != nullptr)
-				return -1;
-
-			if(width == 0 || height == 0) {
+			if(params.width == 0 || params.height == 0) {
 				err = "Invalid resolution";
 				return -1;
 			}
 
-			if(width > 65'535 || height > 65'535) {
+			if(params.width > 65'535 || params.height > 65'535) {
 				err = "Unsupported resolution";
 				return -1;
 			}
 
-			if(pixels == nullptr) {
+			if(params.pixels == nullptr) {
 				err = "Invalid pixels pointer";
 				return -1;
 			}
 
-			if(colorspace != 0 && colorspace != 1) {
+			if(params.colorspace != 0 && params.colorspace != 1) {
 				err = "Invalid colorspace";
 				return -1;
 			}
 
-			if(channels != 3 && channels != 4) {
+			if(params.num_of_channels != 3 && params.num_of_channels != 4) {
 				err = "Invalid number of channels";
 				return -1;
 			}
 
-			Ox::ulong px_len = width * height;
+			Ox::ulong px_len = params.width * params.height;
 
 			os.write((Ox::u8 *)"qoif", 4, err);
-			os.writeU32BE(width, err);
-			os.writeU32BE(height, err);
-			os.writeU8(channels, err);
-			os.writeU8(colorspace, err);
+			os.writeU32BE(params.width, err);
+			os.writeU32BE(params.height, err);
+			os.writeU8(params.num_of_channels, err);
+			os.writeU8(params.colorspace, err);
 
 			rgba32p_t index[64];
 			for(int i = 0; i < 64; i++)
@@ -299,6 +208,8 @@ namespace Ox {
 			rgba32p_t prev_px { 0x00, 0x00, 0x00, 0xff };
 			rgba32p_t curr_px { 0x00, 0x00, 0x00, 0xff };
 			Ox::u8 run = 0;
+
+			rgba32p_t *pixels = params.pixels;
 
 			for(Ox::ulong px_i = 0; px_i < px_len; px_i++, pixels++, prev_px = curr_px) {
 				curr_px = *pixels;
