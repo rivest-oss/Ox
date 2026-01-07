@@ -23,7 +23,7 @@ namespace Ox {
 			return (v.r * 3 + v.g * 5 + v.b * 7 + v.a * 11) & 0x3f;
 		};
 
-		QOI::params_t QOI::decode(Ox::BasicIOStream &rs, Ox::Error &err) {
+		QOI::params_t QOI::decode(Ox::BasicIOStream &rs, Ox::Error &err, bool allow_partial) {
 			params_t params {
 				-1, -1,
 				sRGB, 0,
@@ -84,12 +84,20 @@ namespace Ox {
 
 			rgba32p_t curr_px { 0x00, 0x00, 0x00, 0xff };
 
+			bool is_partial = false;
+
 			Ox::rgba32p_t *pixels = fb;
 			Ox::u8 run = 0;
 			for(Ox::ulong px_i = 0; px_i < fb_len; px_i++, pixels++) {
 				if(run > 0) {
 					run--;
 				} else {
+					if(rs.eof(err) && allow_partial) {
+						params.progress = px_i;
+						is_partial = true;
+						break;
+					}
+
 					Ox::u8 op = rs.readU8(err);
 
 					if((op & 0xc0) == 0x00) {
@@ -150,10 +158,16 @@ namespace Ox {
 					pixels->a = curr_px.a;
 			};
 
+			if(err == nullptr && is_partial && allow_partial == false)
+				err = "Reached end of file yet image is still fully loaded";
+
 			if(err != nullptr) {
 				Ox::exhale(fb);
 				return params;
 			}
+
+			if(is_partial == false)
+				params.progress = fb_len;
 
 			params.width = width;
 			params.height = height;

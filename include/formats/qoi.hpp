@@ -34,9 +34,10 @@ namespace Ox {
 					Ox::u8 num_of_channels = 0;
 
 					rgba32p_t *pixels = nullptr;
+					Ox::ulong progress;
 				} params_t;
 
-				static params_t decode(Ox::BasicIOStream &rs, Ox::Error &err);
+				static params_t decode(Ox::BasicIOStream &rs, Ox::Error &err, bool allow_partial);
 				static int encode(Ox::BasicIOStream &os, Ox::Error &err, params_t params);
 		};
 	};
